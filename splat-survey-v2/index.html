@@ -561,7 +561,7 @@ function cardHTML(ev){
       <span class="tag tag-section">${ev.section}</span>
     </div>
     <div class="event-name">${esc(ev.name)}</div>
-    <div class="event-desc">${esc(ev.desc)}</div>
+    <div class="event-desc">${esc(ev.desc).replace(/\n/g, "<br>")}</div>
     <div class="interest-row">${btns}</div>
   </div>`;
 }
