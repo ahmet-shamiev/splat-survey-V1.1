@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Splat Lab - Event Interest Survey</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --green-50:  #e8faf2;
+    --green-100: #c0f0d8;
+    --green-200: #7de0b0;
+    --green-400: #22c072;
+    --green-500: #16a85f;
+    --green-600: #0d8f4e;
+    --green-700: #07703c;
+    --green-800: #04522b;
+    --lime-400:  #a3e635;
+    --lime-500:  #84cc16;
+    --gray-50:   #f7f9f7;
+    --gray-100:  #eef2ee;
+    --gray-200:  #dde6dd;
+    --gray-400:  #94a894;
+    --gray-600:  #4e6450;
+    --gray-800:  #1e2a1f;
+    --white:     #ffffff;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --shadow-sm: 0 1px 3px rgba(7,112,60,0.08);
+    --shadow-md: 0 4px 16px rgba(7,112,60,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--green-700);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(7,112,60,0.25);
+  }
+  .topbar-logo {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.01em;
+  }
+  .topbar-logo span {
+    color: var(--lime-400);
+  }
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    color: var(--white);
+  }
+  .user-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--lime-400);
+    flex-shrink: 0;
+  }
+  .switch-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.65);
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+  .switch-btn:hover { color: var(--white); }
+
+  /* MAIN LAYOUT */
+  .main { max-width: 680px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* LOGIN */
+  .login-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 56px);
+    padding: 20px;
+  }
+  .login-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: var(--shadow-md);
+  }
+  .login-icon {
+    width: 52px; height: 52px;
+    background: var(--green-50);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+  }
+  .login-card h2 {
+    font-size: 20px; font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--gray-800);
+  }
+  .login-card p {
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+    display: block;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--gray-800);
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 14px;
+  }
+  input[type="text"]:focus { border-color: var(--green-400); }
+  input[type="text"]::placeholder { color: var(--gray-400); }
+
+  .btn-green {
+    width: 100%;
+    background: var(--green-500);
+    color: var(--white);
+    border: none;
+    padding: 11px 20px;
+    border-radius: var(--radius-md);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-green:hover { background: var(--green-600); }
+  .btn-green:active { transform: scale(0.98); }
+
+  .error-msg {
+    font-size: 13px;
+    color: #c0392b;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* SURVEY HEADER */
+  .survey-header {
+    margin-bottom: 20px;
+  }
+  .survey-header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+  }
+  .survey-header p {
+    font-size: 13px;
+    color: var(--gray-600);
+  }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 20px; }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 7px;
+  }
+  .progress-label { font-size: 12px; color: var(--gray-600); }
+  .progress-pct {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--green-600);
+    font-weight: 500;
+  }
+  .progress-bar {
+    height: 5px;
+    background: var(--gray-200);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-400), var(--lime-500));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* SUMMARY BAR */
+  .summary-bar {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .summary-label { font-size: 12px; color: var(--gray-600); font-weight: 500; }
+  .summary-counts { display: flex; gap: 14px; flex-wrap: wrap; }
+  .sum-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--gray-600); }
+  .sum-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* EVENT CARD */
+  .event-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow-sm);
+  }
+  .event-card.answered {
+    border-color: var(--green-200);
+    box-shadow: 0 1px 6px rgba(34,192,114,0.1);
+  }
+  .event-tags {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 9px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .tag-date {
+    background: var(--green-50);
+    color: var(--green-700);
+    border: 1px solid var(--green-100);
+  }
+  .tag-section {
+    background: var(--gray-100);
+    color: var(--gray-600);
+    border: 1px solid var(--gray-200);
+  }
+  .event-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  .event-desc {
+    font-size: 13px;
+    color: var(--gray-600);
+    line-height: 1.65;
+    margin-bottom: 13px;
+  }
+  .interest-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .ibt {
+    padding: 7px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1.5px solid var(--gray-200);
+    background: var(--white);
+    color: var(--gray-600);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .ibt:hover { border-color: var(--green-400); color: var(--green-600); }
+  .ibt-0, .ibt-1, .ibt-2, .ibt-3 { border-color: var(--gray-200); color: var(--gray-600); }
+  .ibt.active { background: var(--green-500); border-color: var(--green-500); color: var(--white); font-weight: 600; }
+
+  /* FOOTER */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-show-more {
+    background: var(--white);
+    border: 1.5px solid var(--green-400);
+    border-radius: var(--radius-md);
+    padding: 9px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green-600);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-show-more:hover { background: var(--green-50); }
+  .btn-show-more:active { transform: scale(0.98); }
+  .all-shown {
+    font-size: 13px;
+    color: var(--gray-400);
+    font-style: italic;
+  }
+
+  .btn-submit {
+    background: var(--green-500);
+    color: var(--white);
+    border: none;
+    padding: 10px 22px;
+    border-radius: var(--radius-md);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, opacity 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .btn-submit:hover:not(:disabled) { background: var(--green-600); }
+  .btn-submit:active:not(:disabled) { transform: scale(0.98); }
+  .btn-submit:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* SPINNER */
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SUCCESS */
+  .success-box {
+    background: var(--green-50);
+    border: 1px solid var(--green-200);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-align: center;
+    margin-top: 16px;
+    animation: fadeIn 0.3s ease;
+  }
+  .success-box h3 { font-size: 16px; font-weight: 600; color: var(--green-700); margin-bottom: 6px; }
+  .success-box p { font-size: 13px; color: var(--green-600); line-height: 1.6; }
+
+  .error-box {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #c0392b;
+    display: none;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .admin-link { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; font-family: 'DM Sans', sans-serif; letter-spacing: 0.03em; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 10px; transition: all 0.15s; }
+  .admin-link:hover { color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.4); }
+
+  /* RESPONSIVE */
+  @media (max-width: 500px) {
+    .topbar { padding: 12px 16px; }
+    .main { padding: 20px 14px 60px; }
+    .login-card { padding: 2rem 1.5rem; }
+    .summary-counts { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar">
+  <div class="topbar-logo">Splat<span>Lab</span> &nbsp;·&nbsp; Event Survey</div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <a href="admin.html" class="admin-link">Admin</a>
+    <div class="topbar-user" id="topbarUser" style="display:none">
+      <div class="user-pill"><span class="user-dot"></span><span id="topbarName"></span></div>
+      <button class="switch-btn" onclick="switchUser()">Switch user</button>
+    </div>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/11843729/4ysxr77/';
+const PAGE_SIZE = 5;
+
+// ─── EVENTS ──────────────────────────────────────────────────────────────────
+async function fetchEventsFromAirtable(){
+  try{
+    const res  = await fetch('/.netlify/functions/events');
+    const data = await res.json();
+    if(!res.ok || data.error) return null;
+    return data.events || [];
+  } catch(e){ return null; }
+}
+
+let EVENTS = [];
+
+const LEVELS = [
+  {label:'Not interested', val:0},
+  {label:'Maybe',          val:1},
+  {label:'Interested',     val:2},
+  {label:'Very interested', val:3},
+];
+const SUM_COLORS = ['#d1d5db','#86efac','#22c072','#15803d'];
+
+let currentUser = '';
+let responses   = {};
+let visibleCount = PAGE_SIZE;
+
+// ─── LOCAL STORAGE (browser) ──────────────────────────────────────────────────
+function lsKey(u){ return 'splat_survey__' + u.trim().toLowerCase().replace(/\s+/g,'_'); }
+function saveLocal(){ try{ localStorage.setItem(lsKey(currentUser), JSON.stringify(responses)); }catch(e){} }
+function loadLocal(){ try{ const v = localStorage.getItem(lsKey(currentUser)); responses = v ? JSON.parse(v) : {}; }catch(e){ responses={}; } }
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function stats(){
+  const done = EVENTS.filter(e=>responses[e.id]!==undefined).length;
+  const counts = [0,0,0,0];
+  EVENTS.forEach(e=>{ if(responses[e.id]!==undefined) counts[responses[e.id]]++; });
+  return { done, pct: Math.round((done/EVENTS.length)*100), counts };
+}
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+function renderLogin(){
+  document.getElementById('topbarUser').style.display = 'none';
+  document.getElementById('app').innerHTML = `
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-icon">🎨</div>
+        <h2>Event interest survey</h2>
+        <p>Enter your name or email to access your personal survey. Your answers are private and saved automatically.</p>
+        <label class="field-label">Your name or email</label>
+        <input type="text" id="userInput" placeholder="e.g. Sarah or sarah@example.com" onkeydown="if(event.key==='Enter')startSurvey()" />
+        <button class="btn-green" onclick="startSurvey()">Open my survey</button>
+        <p class="error-msg" id="loginError"></p>
+      </div>
+    </div>`;
+}
+
+function startSurvey(){
+  const val = document.getElementById('userInput').value.trim();
+  const err = document.getElementById('loginError');
+  if(!val){ err.textContent='Please enter your name or email.'; err.style.display='block'; return; }
+  err.style.display='none';
+  currentUser = val;
+  visibleCount = PAGE_SIZE;
+  loadLocal();
+  document.getElementById('topbarName').textContent = currentUser;
+  document.getElementById('topbarUser').style.display = 'flex';
+  loadAndRender();
+}
+
+// ─── SURVEY RENDER ────────────────────────────────────────────────────────────
+function renderSurvey(){
+  const {done, pct, counts} = stats();
+  const visible = EVENTS.slice(0, visibleCount);
+  const remaining = EVENTS.length - visibleCount;
+
+  let cards = '';
+  visible.forEach(ev => { cards += cardHTML(ev); });
+
+  const showMoreHTML = remaining > 0
+    ? `<button class="btn-show-more" onclick="showMore()">Show ${Math.min(PAGE_SIZE, remaining)} more <span style="font-weight:400;opacity:0.7">(${remaining} left)</span></button>`
+    : `<span class="all-shown">All ${EVENTS.length} events shown</span>`;
+
+  document.getElementById('app').innerHTML = `
+    <div class="main">
+      <div class="survey-header">
+        <h1>Upcoming events</h1>
+        <p>Rate your interest for each event. You can come back and update anytime.</p>
+      </div>
+
+      <div class="summary-bar">
+        <span class="summary-label">My responses</span>
+        <div class="summary-counts">
+          ${LEVELS.map((l,i)=>`<div class="sum-item"><span class="sum-dot" style="background:${SUM_COLORS[i]}"></span><span id="sc-${i}">${counts[i]}</span>&nbsp;${l.label}</div>`).join('')}
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span class="progress-label" id="progressLabel">${done} of ${EVENTS.length} events answered</span>
+          <span class="progress-pct" id="progressPct">${pct}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:${pct}%"></div></div>
+      </div>
+
+      <div id="cards">${cards}</div>
+
+      <div class="footer" id="footer">
+        <div id="showMoreSlot">${showMoreHTML}</div>
+        <button class="btn-submit" id="submitBtn" onclick="submitSurvey()" ${done===0?'disabled':''}>
+          <span id="submitLabel">Submit responses</span>
+          <span class="spinner" id="submitSpinner"></span>
+        </button>
+      </div>
+      <div class="error-box" id="submitError">Something went wrong. Please try again.</div>
+    </div>`;
+}
+
+function cardHTML(ev){
+  const sel = responses[ev.id];
+  const answered = sel !== undefined;
+  let btns = '';
+  LEVELS.forEach(l => {
+    const active = sel === l.val ? ' active' : '';
+    btns += `<button class="ibt ibt-${l.val}${active}" onclick="pick('${ev.id}',${l.val})">${l.label}</button>`;
+  });
+  return `<div class="event-card${answered?' answered':''}" id="card-${ev.id}">
+    <div class="event-tags">
+      <span class="tag tag-date">${ev.date}</span>
+      <span class="tag tag-section">${ev.section}</span>
+    </div>
+    <div class="event-name">${esc(ev.name)}</div>
+    <div class="event-desc">${esc(ev.desc)}</div>
+    <div class="interest-row">${btns}</div>
+  </div>`;
+}
+
+// ─── SHOW MORE ────────────────────────────────────────────────────────────────
+function showMore(){
+  const from = visibleCount;
+  visibleCount = Math.min(visibleCount + PAGE_SIZE, EVENTS.length);
+  const remaining = EVENTS.length - visibleCount;
+  EVENTS.slice(from, visibleCount).forEach(ev => {
+    document.getElementById('cards').insertAdjacentHTML('beforeend', cardHTML(ev));
+  });
+  const slot = document.getElementById('showMoreSlot');
+  slot.innerHTML = remaining > 0
+    ? `<button class="btn-show-more" onclick="showMore()">Show ${Math.min(PAGE_SIZE,remaining)} more <span style="font-weight:400;opacity:0.7">(${remaining} left)</span></button>`
+    : `<span class="all-shown">All ${EVENTS.length} events shown</span>`;
+}
+
+// ─── PICK ─────────────────────────────────────────────────────────────────────
+function pick(eventId, val){
+  if(responses[eventId]===val){ delete responses[eventId]; }
+  else { responses[eventId] = val; }
+  saveLocal();
+  const card = document.getElementById('card-'+eventId);
+  if(card){
+    card.querySelectorAll('.ibt').forEach((b,i)=>{
+      b.className = 'ibt ibt-'+i + (responses[eventId]===i?' active':'');
+    });
+    if(responses[eventId]!==undefined) card.classList.add('answered');
+    else card.classList.remove('answered');
+  }
+  updateStats();
+}
+
+function updateStats(){
+  const {done, pct, counts} = stats();
+  const fill  = document.getElementById('progressFill');
+  const label = document.getElementById('progressLabel');
+  const pctEl = document.getElementById('progressPct');
+  const btn   = document.getElementById('submitBtn');
+  if(fill)  fill.style.width  = pct+'%';
+  if(label) label.textContent = done+' of '+EVENTS.length+' events answered';
+  if(pctEl) pctEl.textContent = pct+'%';
+  if(btn)   btn.disabled      = (done===0);
+  LEVELS.forEach((l,i)=>{ const el=document.getElementById('sc-'+i); if(el) el.textContent=counts[i]; });
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────────────────────────
+async function submitSurvey(){
+  const btn     = document.getElementById('submitBtn');
+  const label   = document.getElementById('submitLabel');
+  const spinner = document.getElementById('submitSpinner');
+  const errBox  = document.getElementById('submitError');
+
+  btn.disabled        = true;
+  label.textContent   = 'Submitting...';
+  spinner.style.display = 'block';
+  errBox.style.display  = 'none';
+
+  // Build flat payload - one field per event
+  const payload = { user: currentUser, submitted_at: new Date().toISOString() };
+  EVENTS.forEach(e => {
+    payload[e.name] = responses[e.id] !== undefined ? LEVELS[responses[e.id]].label : '';
+  });
+
+  try {
+    await fetch(ZAPIER_WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    });
+
+    spinner.style.display = 'none';
+    label.textContent = 'Submitted';
+
+    const done = EVENTS.filter(e=>responses[e.id]!==undefined).length;
+    document.getElementById('footer').insertAdjacentHTML('afterend',
+      `<div class="success-box">
+        <h3>Thank you!</h3>
+        <p>${done} event${done!==1?'s':''} answered. Your responses have been recorded.<br>You can come back anytime to update your choices.</p>
+      </div>`);
+  } catch(err){
+    spinner.style.display = 'none';
+    label.textContent     = 'Submit responses';
+    btn.disabled          = false;
+    errBox.style.display  = 'block';
+    console.error('Webhook error:', err);
+  }
+}
+
+// ─── SWITCH USER ──────────────────────────────────────────────────────────────
+function switchUser(){
+  currentUser = ''; responses = {}; visibleCount = PAGE_SIZE;
+  renderLogin();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function init(){
+  // Always show login first
+  renderLogin();
+}
+
+// Called after user enters name - fetch events then render survey
+async function loadAndRender(){
+  document.getElementById('app').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 56px);gap:14px">
+      <div style="width:32px;height:32px;border:3px solid var(--green-100);border-top-color:var(--green-500);border-radius:50%;animation:spin 0.7s linear infinite"></div>
+      <p style="font-size:14px;color:var(--gray-400)">Loading events...</p>
+    </div>`;
+
+  const fetched = await fetchEventsFromAirtable();
+  if(!fetched || fetched.length === 0){
+    document.getElementById('app').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:20px">
+        <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:2rem;max-width:380px;text-align:center;box-shadow:var(--shadow-md)">
+          <div style="font-size:32px;margin-bottom:14px">📋</div>
+          <h2 style="font-size:17px;font-weight:600;margin-bottom:8px">No active events found</h2>
+          <p style="font-size:13px;color:var(--gray-500);line-height:1.6">There are no active events at the moment. Please check back later.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  EVENTS = fetched;
+  visibleCount = PAGE_SIZE;
+  renderSurvey();
+}
+
+init();
+</script>
+</body>
+</html>

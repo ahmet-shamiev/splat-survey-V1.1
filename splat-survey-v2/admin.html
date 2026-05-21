@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Splat Lab – Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --green-50:  #e8faf2;
+    --green-100: #c0f0d8;
+    --green-200: #7de0b0;
+    --green-400: #22c072;
+    --green-500: #16a85f;
+    --green-600: #0d8f4e;
+    --green-700: #07703c;
+    --lime-400:  #a3e635;
+    --gray-50:   #f7f9f7;
+    --gray-100:  #eef2ee;
+    --gray-200:  #dde6dd;
+    --gray-400:  #94a894;
+    --gray-500:  #6b7c6c;
+    --gray-600:  #4e6450;
+    --gray-800:  #1e2a1f;
+    --white:     #ffffff;
+    --red-50:    #fef2f2;
+    --red-200:   #fecaca;
+    --red-600:   #dc2626;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --shadow-sm: 0 1px 3px rgba(7,112,60,0.08);
+    --shadow-md: 0 4px 16px rgba(7,112,60,0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    min-height: 100vh;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--green-700);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(7,112,60,0.25);
+  }
+  .topbar-logo { font-size: 15px; font-weight: 600; color: var(--white); letter-spacing: 0.01em; }
+  .topbar-logo span { color: var(--lime-400); }
+  .topbar-badge {
+    font-size: 11px;
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.8);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .back-link {
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 4px 10px;
+    transition: all 0.15s;
+  }
+  .back-link:hover { color: white; border-color: rgba(255,255,255,0.45); }
+
+  /* LAYOUT */
+  .main { max-width: 1100px; margin: 0 auto; padding: 32px 28px 80px; }
+
+  /* CARDS */
+  .card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+  }
+  .card-sub {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  /* FORM ELEMENTS */
+  .field { margin-bottom: 14px; }
+  .field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .field-hint {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: var(--gray-800);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus, input[type="password"]:focus { border-color: var(--green-400); }
+  input[type="text"]::placeholder, input[type="password"]::placeholder { color: var(--gray-400); }
+
+  /* BUTTONS */
+  .btn-green {
+    background: var(--green-500);
+    color: var(--white);
+    border: none;
+    padding: 10px 22px;
+    border-radius: var(--radius-md);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .btn-green:hover { background: var(--green-600); }
+  .btn-green:active { transform: scale(0.98); }
+  .btn-green:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-green.full { width: 100%; justify-content: center; }
+
+  .btn-outline {
+    background: var(--white);
+    color: var(--green-600);
+    border: 1.5px solid var(--green-400);
+    padding: 9px 20px;
+    border-radius: var(--radius-md);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .btn-outline:hover { background: var(--green-50); }
+  .btn-outline:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* ALERTS */
+  .alert {
+    border-radius: var(--radius-md);
+    padding: 11px 14px;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+    line-height: 1.5;
+  }
+  .alert.error { background: var(--red-50); border: 1px solid var(--red-200); color: var(--red-600); }
+  .alert.success { background: var(--green-50); border: 1px solid var(--green-200); color: var(--green-700); }
+  .alert.info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+
+  /* SPINNER */
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* STATUS BADGE */
+  .status-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-active   { background: var(--green-50);  color: var(--green-700); border: 1px solid var(--green-200); }
+  .badge-inactive { background: var(--gray-100); color: var(--gray-500);  border: 1px solid var(--gray-200); }
+
+  /* EVENT TABLE */
+  .events-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .events-meta { font-size: 13px; color: var(--gray-500); }
+  .events-meta strong { color: var(--gray-800); }
+
+  .event-table { width: 100%; border-collapse: collapse; }
+  .event-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+  }
+  .event-table th:first-child { border-radius: 8px 0 0 0; }
+  .event-table th:last-child  { border-radius: 0 8px 0 0; }
+  .event-table td {
+    padding: 11px 10px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: top;
+    color: var(--gray-800);
+    line-height: 1.4;
+  }
+  .event-table tr:last-child td { border-bottom: none; }
+  .event-table tr:hover td { background: var(--gray-50); }
+
+  .td-name { font-weight: 500; max-width: 200px; }
+  .td-desc { color: var(--gray-500); max-width: 240px; font-size: 12px; }
+  .td-date { white-space: nowrap; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--gray-600); }
+  .td-cat  { font-size: 12px; color: var(--gray-600); }
+
+  .sync-bar {
+    background: var(--green-50);
+    border: 1px solid var(--green-200);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .sync-bar-text { font-size: 13px; color: var(--green-700); }
+  .sync-bar-text strong { font-weight: 600; }
+
+  .divider { border: none; border-top: 1px solid var(--gray-200); margin: 20px 0; }
+
+  .conn-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--gray-600);
+  }
+  .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-400); flex-shrink: 0; }
+  .disconnect-btn {
+    background: none;
+    border: none;
+    font-size: 12px;
+    color: var(--gray-400);
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: 'DM Sans', sans-serif;
+    padding: 0;
+    margin-left: auto;
+  }
+  .disconnect-btn:hover { color: var(--red-600); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray-400);
+    font-size: 14px;
+  }
+  .empty-state p { margin-top: 6px; font-size: 13px; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.25s ease; }
+
+  @media (max-width: 500px) {
+    .main { padding: 20px 14px 60px; }
+    .card { padding: 18px 16px; }
+    .event-table th:nth-child(3),
+    .event-table td:nth-child(3) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="topbar-logo">Splat<span>Lab</span></div>
+    <span class="topbar-badge">Admin</span>
+  </div>
+  <a href="index.html" class="back-link">← Back to survey</a>
+</div>
+
+<div class="main" id="app"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const ADMIN_PASSWORD = 'splat2025';   // Change this before deploying
+
+// Airtable field names - must match your base exactly
+const FIELD_MAP = {
+  name:        'Name',
+  description: 'Description',
+  date:        'Formatted Date',
+  category:    'Category',
+  status:      'Status',
+};
+
+// localStorage keys
+const LS_AUTH    = 'splat_admin_auth';
+const LS_AT_KEY  = 'splat_at_key';
+const LS_AT_BASE = 'splat_at_base';
+const LS_AT_TBL  = 'splat_at_table';
+const LS_EVENTS  = 'splat_synced_events';
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let authed    = false;
+let atKey     = '';
+let atBase    = '';
+let atTable   = '';
+let fetchedEvents = [];
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init(){
+  authed  = localStorage.getItem(LS_AUTH) === '1';
+  atKey   = localStorage.getItem(LS_AT_KEY)  || '';
+  atBase  = localStorage.getItem(LS_AT_BASE) || '';
+  atTable = localStorage.getItem(LS_AT_TBL)  || '';
+
+  if(!authed)         renderLogin();
+  else if(!atKey)     renderConnect();
+  else                renderDashboard();
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+function fmtDate(val){
+  if(!val) return 'TBD';
+  // Lookup fields return arrays - unwrap the first value
+  if(Array.isArray(val)) val = val[0];
+  if(!val) return 'TBD';
+  try{
+    const d = new Date(val);
+    if(isNaN(d.getTime())) return String(val);
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  }catch(e){ return String(val); }
+}
+function show(id,type){ const el=document.getElementById(id); if(el){ el.style.display='block'; el.className='alert '+type; } }
+function hide(id){ const el=document.getElementById(id); if(el) el.style.display='none'; }
+function spin(id,on){ const el=document.getElementById(id); if(el) el.style.display=on?'block':'none'; }
+
+// ─── VIEW: LOGIN ──────────────────────────────────────────────────────────────
+function renderLogin(){
+  document.getElementById('app').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:20px">
+      <div class="card fade-in" style="max-width:380px;width:100%">
+        <div style="font-size:28px;margin-bottom:16px">🔒</div>
+        <div class="card-title">Admin access</div>
+        <div class="card-sub">Enter the admin password to continue.</div>
+        <div class="field">
+          <label class="field-label">Password</label>
+          <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+        </div>
+        <button class="btn-green full" onclick="doLogin()">Sign in</button>
+        <div class="alert error" id="loginErr"></div>
+      </div>
+    </div>`;
+  setTimeout(()=>{ const el=document.getElementById('pwInput'); if(el) el.focus(); }, 50);
+}
+
+function doLogin(){
+  const val = document.getElementById('pwInput').value;
+  if(val === ADMIN_PASSWORD){
+    localStorage.setItem(LS_AUTH, '1');
+    authed = true;
+    atKey ? renderDashboard() : renderConnect();
+  } else {
+    const el = document.getElementById('loginErr');
+    el.textContent = 'Incorrect password. Please try again.';
+    el.style.display = 'block';
+    el.className = 'alert error';
+  }
+}
+
+// ─── VIEW: CONNECT AIRTABLE ───────────────────────────────────────────────────
+function renderConnect(){
+  document.getElementById('app').innerHTML = `
+    <div class="card fade-in" style="max-width:500px;margin:40px auto">
+      <div style="font-size:26px;margin-bottom:14px">🔗</div>
+      <div class="card-title">Connect to Airtable</div>
+      <div class="card-sub">Enter your Airtable credentials. These are saved locally in your browser and never sent anywhere except the Airtable API.</div>
+
+      <div class="field">
+        <label class="field-label">Personal Access Token</label>
+        <input type="text" id="atKeyInput" placeholder="patXXXXXXXXXXXXXX" value="${esc(atKey)}" />
+        <div class="field-hint">airtable.com → Account → Developer hub → Personal access tokens</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Base ID</label>
+        <input type="text" id="atBaseInput" placeholder="appXXXXXXXXXXXXXX" value="${esc(atBase)}" />
+        <div class="field-hint">Found in your base URL: airtable.com/<strong>appXXX</strong>/...</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Table Name</label>
+        <input type="text" id="atTableInput" placeholder="Events" value="${esc(atTable)||'Events'}" />
+        <div class="field-hint">Exact name of the table containing your events</div>
+      </div>
+
+      <button class="btn-green full" id="connectBtn" onclick="doConnect()" style="margin-top:6px">
+        <span id="connectLabel">Connect & load events</span>
+        <span class="spinner" id="connectSpinner"></span>
+      </button>
+      <div class="alert" id="connectAlert"></div>
+    </div>`;
+}
+
+async function doConnect(){
+  const key   = document.getElementById('atKeyInput').value.trim();
+  const base  = document.getElementById('atBaseInput').value.trim();
+  const table = document.getElementById('atTableInput').value.trim() || 'Events';
+  hide('connectAlert');
+
+  if(!key || !base){ show('connectAlert','error'); document.getElementById('connectAlert').textContent='Please fill in all fields.'; return; }
+
+  document.getElementById('connectBtn').disabled = true;
+  document.getElementById('connectLabel').textContent = 'Connecting...';
+  spin('connectSpinner', true);
+
+  const result = await fetchAirtable(key, base, table);
+  spin('connectSpinner', false);
+  document.getElementById('connectLabel').textContent = 'Connect & load events';
+  document.getElementById('connectBtn').disabled = false;
+
+  if(result.error){
+    show('connectAlert','error');
+    document.getElementById('connectAlert').textContent = result.error;
+    return;
+  }
+
+  atKey = key; atBase = base; atTable = table;
+  localStorage.setItem(LS_AT_KEY,  atKey);
+  localStorage.setItem(LS_AT_BASE, atBase);
+  localStorage.setItem(LS_AT_TBL,  atTable);
+
+  fetchedEvents = result.events;
+  renderDashboard(true);
+}
+
+// ─── AIRTABLE API ─────────────────────────────────────────────────────────────
+async function fetchAirtable(key, base, table, offset=''){
+  const allRecords = [];
+  let url = `https://api.airtable.com/v0/${base}/${encodeURIComponent(table)}?pageSize=100`;
+  if(offset) url += `&offset=${offset}`;
+
+  try {
+    // Paginate through all records
+    let nextOffset = null;
+    do {
+      let pageUrl = `https://api.airtable.com/v0/${base}/${encodeURIComponent(table)}?pageSize=100`;
+      if(nextOffset) pageUrl += `&offset=${nextOffset}`;
+
+      const res = await fetch(pageUrl, {
+        headers: { 'Authorization': 'Bearer ' + key }
+      });
+      const data = await res.json();
+
+      if(!res.ok){
+        const msg = data?.error?.message || data?.error?.type || ('HTTP ' + res.status);
+        return { error: 'Airtable error: ' + msg };
+      }
+
+      (data.records || []).forEach(r => {
+        const f = r.fields;
+        allRecords.push({
+          id:          r.id,
+          name:        f[FIELD_MAP.name]        || '',
+          description: f[FIELD_MAP.description] || '',
+          date:        fmtDate(f[FIELD_MAP.date]),
+          category:    f[FIELD_MAP.category]    || '',
+          status:      f[FIELD_MAP.status]      || 'Active',
+        });
+      });
+      nextOffset = data.offset || null;
+    } while(nextOffset);
+
+    return { events: allRecords };
+  } catch(e){
+    return { error: 'Connection failed. Check your token and Base ID.' };
+  }
+}
+
+// ─── VIEW: DASHBOARD ──────────────────────────────────────────────────────────
+function renderDashboard(justSynced=false){
+  const cached = localStorage.getItem(LS_EVENTS);
+  const events = fetchedEvents.length ? fetchedEvents : (cached ? JSON.parse(cached) : []);
+  const active = events.filter(e => (e.status||'').toLowerCase() === 'active');
+  const lastSync = localStorage.getItem('splat_last_sync') || 'Never';
+
+  document.getElementById('app').innerHTML = `
+    <div class="fade-in">
+
+      <!-- CONNECTION STATUS -->
+      <div class="card">
+        <div class="card-title">Airtable connection</div>
+        <div class="card-sub" style="margin-bottom:12px">Connected to your events base. Pull the latest data anytime.</div>
+        <div class="conn-info">
+          <span class="conn-dot"></span>
+          <span>Base <code style="font-family:'DM Mono',monospace;font-size:12px">${esc(atBase)}</code> &nbsp;·&nbsp; Table: <strong>${esc(atTable)}</strong></span>
+          <button class="disconnect-btn" onclick="disconnect()">Disconnect</button>
+        </div>
+        <hr class="divider" />
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <span style="font-size:13px;color:var(--gray-500)">Last sync: <strong style="color:var(--gray-800)">${esc(lastSync)}</strong></span>
+          <button class="btn-outline" id="refreshBtn" onclick="doRefresh()">
+            <span id="refreshLabel">↻ &nbsp;Refresh from Airtable</span>
+            <span class="spinner" id="refreshSpinner" style="border-color:rgba(13,143,78,0.3);border-top-color:var(--green-600)"></span>
+          </button>
+        </div>
+        <div class="alert" id="refreshAlert"></div>
+      </div>
+
+      <!-- SYNC CALLOUT -->
+      ${(justSynced || fetchedEvents.length) && active.length ? `
+      <div class="sync-bar">
+        <div class="sync-bar-text">
+          ✅ &nbsp;<strong>${active.length} active event${active.length!==1?'s':''}</strong> synced from Airtable. The survey loads these events automatically on every visit.
+        </div>
+      </div>` : ''}
+
+      <!-- EVENTS TABLE -->
+      <div class="card">
+        <div class="events-header">
+          <div>
+            <div class="card-title">Events from Airtable</div>
+            <div class="events-meta">
+              <strong>${events.length}</strong> total &nbsp;·&nbsp;
+              <strong style="color:var(--green-700)">${active.length}</strong> active &nbsp;·&nbsp;
+              <strong style="color:var(--gray-500)">${events.length - active.length}</strong> inactive
+            </div>
+          </div>
+        </div>
+
+        ${events.length === 0 ? `
+          <div class="empty-state">
+            <div style="font-size:32px">📋</div>
+            <p>No events loaded yet. Click "Refresh from Airtable" to pull your events.</p>
+          </div>
+        ` : `
+          <div style="overflow-x:auto">
+            <table class="event-table">
+              <thead>
+                <tr>
+                  <th>Event name</th>
+                  <th>Category</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${events.map(e=>`
+                  <tr>
+                    <td class="td-name">
+                      ${esc(e.name)}
+                      ${e.description ? `<div class="td-desc">${esc(e.description.substring(0,80))}${e.description.length>80?'…':''}</div>` : ''}
+                    </td>
+                    <td class="td-cat">${esc(e.category)}</td>
+                    <td class="td-date">${esc(e.date)}</td>
+                    <td><span class="status-badge ${(e.status||'').toLowerCase()==='active'?'badge-active':'badge-inactive'}">${esc(e.status||'—')}</span></td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </div>
+
+
+    </div>`;
+
+  if(justSynced && fetchedEvents.length){
+    const ts = new Date().toLocaleString();
+    localStorage.setItem('splat_last_sync', ts);
+    localStorage.setItem(LS_EVENTS, JSON.stringify(fetchedEvents));
+    fetchedEvents = [];
+  }
+}
+
+// ─── REFRESH ──────────────────────────────────────────────────────────────────
+async function doRefresh(){
+  document.getElementById('refreshBtn').disabled = true;
+  document.getElementById('refreshLabel').textContent = 'Loading...';
+  spin('refreshSpinner', true);
+  hide('refreshAlert');
+
+  const result = await fetchAirtable(atKey, atBase, atTable);
+  spin('refreshSpinner', false);
+  document.getElementById('refreshLabel').textContent = '↻ &nbsp;Refresh from Airtable';
+  document.getElementById('refreshBtn').disabled = false;
+
+  if(result.error){
+    show('refreshAlert','error');
+    document.getElementById('refreshAlert').textContent = result.error;
+    return;
+  }
+
+  fetchedEvents = result.events;
+  const ts = new Date().toLocaleString();
+  localStorage.setItem('splat_last_sync', ts);
+  localStorage.setItem(LS_EVENTS, JSON.stringify(fetchedEvents));
+  renderDashboard(true);
+}
+
+
+
+// ─── DISCONNECT ───────────────────────────────────────────────────────────────
+function disconnect(){
+  if(!confirm('Disconnect from Airtable? Your credentials will be cleared.')) return;
+  localStorage.removeItem(LS_AT_KEY);
+  localStorage.removeItem(LS_AT_BASE);
+  localStorage.removeItem(LS_AT_TBL);
+  atKey = ''; atBase = ''; atTable = '';
+  renderConnect();
+}
+
+// ─── START ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
