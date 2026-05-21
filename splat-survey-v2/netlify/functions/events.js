@@ -70,6 +70,13 @@ exports.handler = async function(event, context) {
       offset = data.offset || null;
     } while(offset);
 
+    // Sort by date ascending, TBD goes to the end
+    allRecords.sort((a, b) => {
+      if(a.date === 'TBD') return 1;
+      if(b.date === 'TBD') return -1;
+      return new Date(a.date) - new Date(b.date);
+    });
+
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
