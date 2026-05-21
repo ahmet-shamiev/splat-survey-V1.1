@@ -621,10 +621,11 @@ async function submitSurvey(){
   spinner.style.display = 'block';
   errBox.style.display  = 'none';
 
-  // Build flat payload - one field per event
+  // Build flat payload - key includes date to differentiate same-name events
   const payload = { user: currentUser, submitted_at: new Date().toISOString() };
   EVENTS.forEach(e => {
-    payload[e.name] = responses[e.id] !== undefined ? LEVELS[responses[e.id]].label : '';
+    const key = e.date && e.date !== 'TBD' ? `${e.name} - ${e.date}` : e.name;
+    payload[key] = responses[e.id] !== undefined ? LEVELS[responses[e.id]].label : '';
   });
 
   try {
