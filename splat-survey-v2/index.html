@@ -621,12 +621,22 @@ async function submitSurvey(){
   spinner.style.display = 'block';
   errBox.style.display  = 'none';
 
-  // Build flat payload - key includes date to differentiate same-name events
-  const payload = { user: currentUser, submitted_at: new Date().toISOString() };
+  // Build structured payload - events as array for Zapier looping
+  const events = [];
   EVENTS.forEach(e => {
-    const key = e.date && e.date !== 'TBD' ? `${e.name} - ${e.date}` : e.name;
-    payload[key] = responses[e.id] !== undefined ? LEVELS[responses[e.id]].label : '';
+    if(responses[e.id] !== undefined){
+      events.push({
+        name:     e.name,
+        date:     e.date || 'TBD',
+        interest: LEVELS[responses[e.id]].label,
+      });
+    }
   });
+  const payload = {
+    user:         currentUser,
+    submitted_at: new Date().toISOString(),
+    events:       events,
+  };
 
   try {
     await fetch(ZAPIER_WEBHOOK_URL, {
