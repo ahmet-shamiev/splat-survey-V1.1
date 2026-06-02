@@ -401,6 +401,150 @@
   .admin-link { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; font-family: 'DM Sans', sans-serif; letter-spacing: 0.03em; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 10px; transition: all 0.15s; }
   .admin-link:hover { color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.4); }
 
+  /* MINI CALENDAR */
+  .cal-wrap {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .cal-header {
+    background: var(--green-700);
+    color: var(--white);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cal-header h3 { font-size: 14px; font-weight: 600; }
+  .cal-nav {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .cal-nav:hover { background: rgba(255,255,255,0.15); }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding: 12px;
+    gap: 3px;
+  }
+  .cal-dow {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gray-400);
+    text-transform: uppercase;
+    padding: 4px 0;
+  }
+  .cal-day {
+    text-align: center;
+    font-size: 12px;
+    padding: 6px 2px;
+    border-radius: 6px;
+    cursor: default;
+    position: relative;
+    color: var(--gray-600);
+    line-height: 1.2;
+  }
+  .cal-day.other-month { color: var(--gray-200); }
+  .cal-day.today {
+    background: var(--green-50);
+    color: var(--green-700);
+    font-weight: 600;
+  }
+  .cal-day.has-event {
+    background: var(--green-500);
+    color: var(--white);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .cal-day.has-event:hover { background: var(--green-600); }
+  .cal-day.has-event.today { background: var(--green-700); }
+  .cal-legend {
+    padding: 10px 14px 14px;
+    border-top: 1px solid var(--gray-100);
+  }
+  .cal-legend-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .cal-event-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-100);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .cal-event-item:last-child { border-bottom: none; }
+  .cal-event-item:hover .cal-event-name { color: var(--green-600); }
+  .cal-event-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green-400);
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+  .cal-event-name {
+    font-size: 12px;
+    color: var(--gray-700);
+    line-height: 1.4;
+    transition: color 0.1s;
+  }
+  .cal-event-date {
+    font-size: 11px;
+    color: var(--gray-400);
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 6px;
+  }
+  .cal-empty { font-size: 12px; color: var(--gray-400); text-align: center; padding: 12px 0; }
+
+  /* SPLIT LAYOUT */
+  .split-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+  .calendar-panel {
+    flex: 0 0 520px;
+    position: sticky;
+    top: 70px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    height: calc(100vh - 100px);
+  }
+  .calendar-panel iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+  .survey-panel {
+    flex: 1;
+    min-width: 0;
+  }
+
   /* RESPONSIVE */
   @media (max-width: 500px) {
     .topbar { padding: 12px 16px; }
@@ -423,7 +567,14 @@
   </div>
 </div>
 
-<div id="app"></div>
+<div class="split-layout" id="splitLayout">
+  <div class="calendar-panel" id="calendarPanel" style="display:none">
+    <div class="cal-wrap" id="calendarWrap"></div>
+  </div>
+  <div class="survey-panel" id="surveyPanel">
+    <div id="app"></div>
+  </div>
+</div>
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
@@ -670,6 +821,117 @@ function switchUser(){
   renderLogin();
 }
 
+
+// ─── MINI CALENDAR ────────────────────────────────────────────────────────────
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function renderCalendar(){
+  const wrap = document.getElementById('calendarWrap');
+  if(!wrap) return;
+
+  const today    = new Date();
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
+  const monthName = new Date(calYear, calMonth).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+
+  // Map event dates to this month
+  const eventsByDay = {};
+  EVENTS.forEach(e => {
+    if(!e.date || e.date === 'TBD') return;
+    const d = new Date(e.date);
+    if(d.getFullYear() === calYear && d.getMonth() === calMonth){
+      const day = d.getDate();
+      if(!eventsByDay[day]) eventsByDay[day] = [];
+      eventsByDay[day].push(e);
+    }
+  });
+
+  // Events this month for legend
+  const monthEvents = EVENTS.filter(e => {
+    if(!e.date || e.date === 'TBD') return false;
+    const d = new Date(e.date);
+    return d.getFullYear() === calYear && d.getMonth() === calMonth;
+  });
+
+  // Build day cells
+  let cells = '';
+  const DOW = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  DOW.forEach(d => { cells += `<div class="cal-dow">${d}</div>`; });
+
+  // Prev month days
+  for(let i = firstDay - 1; i >= 0; i--){
+    cells += `<div class="cal-day other-month">${daysInPrev - i}</div>`;
+  }
+
+  // Current month days
+  for(let d = 1; d <= daysInMonth; d++){
+    const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+    const hasEv   = !!eventsByDay[d];
+    let cls = 'cal-day';
+    if(isToday) cls += ' today';
+    if(hasEv)   cls += ' has-event';
+    const onclick = hasEv ? `onclick="scrollToEvent('${eventsByDay[d][0].id}')"` : '';
+    cells += `<div class="${cls}" ${onclick}>${d}</div>`;
+  }
+
+  // Next month days
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  for(let d = 1; d <= totalCells - firstDay - daysInMonth; d++){
+    cells += `<div class="cal-day other-month">${d}</div>`;
+  }
+
+  // Legend events
+  let legendHTML = '';
+  if(monthEvents.length === 0){
+    legendHTML = `<div class="cal-empty">No events this month</div>`;
+  } else {
+    monthEvents.forEach(e => {
+      legendHTML += `
+        <div class="cal-event-item" onclick="scrollToEvent('${e.id}')">
+          <span class="cal-event-dot"></span>
+          <span class="cal-event-name">${esc(e.name.length > 40 ? e.name.substring(0,40)+'…' : e.name)}</span>
+          <span class="cal-event-date">${e.date}</span>
+        </div>`;
+    });
+  }
+
+  wrap.innerHTML = `
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
+      <h3>${monthName}</h3>
+      <button class="cal-nav" onclick="changeMonth(1)">&#8250;</button>
+    </div>
+    <div class="cal-grid">${cells}</div>
+    <div class="cal-legend">
+      <div class="cal-legend-title">Events this month</div>
+      ${legendHTML}
+    </div>`;
+}
+
+function changeMonth(dir){
+  calMonth += dir;
+  if(calMonth > 11){ calMonth = 0; calYear++; }
+  if(calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function scrollToEvent(eventId){
+  // Make sure the card is visible (expand if needed)
+  const idx = EVENTS.findIndex(e => e.id === eventId);
+  if(idx >= visibleCount){
+    visibleCount = idx + 1;
+    // Re-render to show the card
+    renderSurvey();
+    renderCalendar();
+  }
+  setTimeout(() => {
+    const card = document.getElementById('card-' + eventId);
+    if(card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 async function init(){
   // Always show login first
@@ -699,6 +961,8 @@ async function loadAndRender(){
 
   EVENTS = fetched;
   visibleCount = PAGE_SIZE;
+  document.getElementById('calendarPanel').style.display = 'block';
+  renderCalendar();
   renderSurvey();
 }
 
