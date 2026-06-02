@@ -4,626 +4,656 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Splat Lab - Event Interest Survey</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --green-50:  #e8faf2;
-    --green-100: #c0f0d8;
-    --green-200: #7de0b0;
-    --green-400: #22c072;
-    --green-500: #16a85f;
-    --green-600: #0d8f4e;
-    --green-700: #07703c;
-    --green-800: #04522b;
-    --lime-400:  #a3e635;
-    --lime-500:  #84cc16;
-    --gray-50:   #f7f9f7;
-    --gray-100:  #eef2ee;
-    --gray-200:  #dde6dd;
-    --gray-400:  #94a894;
-    --gray-600:  #4e6450;
-    --gray-800:  #1e2a1f;
-    --white:     #ffffff;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-    --shadow-sm: 0 1px 3px rgba(7,112,60,0.08);
-    --shadow-md: 0 4px 16px rgba(7,112,60,0.12);
-  }
+:root {
+  --green-50:  #e8faf2;
+  --green-100: #c0f0d8;
+  --green-200: #7de0b0;
+  --green-400: #22c072;
+  --green-500: #16a85f;
+  --green-600: #0d8f4e;
+  --green-700: #07703c;
+  --green-800: #04522b;
+  --lime-400:  #a3e635;
+  --lime-500:  #84cc16;
+  --yellow-400:#fbbf24;
+  --gray-50:   #f7f9f7;
+  --gray-100:  #eef2ee;
+  --gray-200:  #dde6dd;
+  --gray-300:  #c5d1c5;
+  --gray-400:  #94a894;
+  --gray-500:  #6b7c6c;
+  --gray-600:  #4e6450;
+  --gray-700:  #374a38;
+  --gray-800:  #1e2a1f;
+  --white:     #ffffff;
+  --red-400:   #f87171;
+  --red-500:   #ef4444;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --shadow-sm: 0 1px 3px rgba(7,112,60,0.08);
+  --shadow-md: 0 4px 16px rgba(7,112,60,0.12);
+  --topbar-h:  54px;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--gray-50);
-    color: var(--gray-800);
-    min-height: 100vh;
-    padding: 0;
-  }
+body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--gray-800);min-height:100vh}
 
-  /* TOP BAR */
-  .topbar {
-    background: var(--green-700);
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 12px rgba(7,112,60,0.25);
-  }
-  .topbar-logo {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--white);
-    letter-spacing: 0.01em;
-  }
-  .topbar-logo span {
-    color: var(--lime-400);
-  }
-  .topbar-user {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .user-pill {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 20px;
-    padding: 5px 12px;
-    font-size: 13px;
-    color: var(--white);
-  }
-  .user-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--lime-400);
-    flex-shrink: 0;
-  }
-  .switch-btn {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,0.65);
-    font-size: 12px;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: 0;
-  }
-  .switch-btn:hover { color: var(--white); }
+/* ── TOPBAR ── */
+.topbar{background:var(--green-700);height:var(--topbar-h);padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(7,112,60,0.25)}
+.topbar-logo{font-size:15px;font-weight:700;color:var(--white);letter-spacing:0.01em}
+.topbar-logo span{color:var(--lime-400)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.user-pill{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:5px 12px;font-size:13px;color:var(--white)}
+.user-dot{width:7px;height:7px;border-radius:50%;background:var(--lime-400);flex-shrink:0}
+.switch-btn{background:none;border:none;color:rgba(255,255,255,0.65);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:underline;padding:0}
+.switch-btn:hover{color:var(--white)}
+.admin-link{font-size:12px;color:rgba(255,255,255,0.5);text-decoration:none;font-family:'DM Sans',sans-serif;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 10px;transition:all 0.15s}
+.admin-link:hover{color:rgba(255,255,255,0.9);border-color:rgba(255,255,255,0.4)}
 
-  /* MAIN LAYOUT */
-  .main { max-width: 680px; margin: 0 auto; padding: 28px 20px 60px; }
+/* ── LAYOUT ── */
+.layout{display:flex;height:calc(100vh - var(--topbar-h))}
 
-  /* LOGIN */
-  .login-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - 56px);
-    padding: 20px;
-  }
-  .login-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-xl);
-    padding: 2.5rem 2rem;
-    width: 100%;
-    max-width: 400px;
-    box-shadow: var(--shadow-md);
-  }
-  .login-icon {
-    width: 52px; height: 52px;
-    background: var(--green-50);
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 20px;
-    font-size: 24px;
-  }
-  .login-card h2 {
-    font-size: 20px; font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--gray-800);
-  }
-  .login-card p {
-    font-size: 14px;
-    color: var(--gray-600);
-    line-height: 1.6;
-    margin-bottom: 24px;
-  }
-  .field-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--gray-600);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 6px;
-    display: block;
-  }
-  input[type="text"] {
-    width: 100%;
-    padding: 10px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    border: 1.5px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    background: var(--white);
-    color: var(--gray-800);
-    outline: none;
-    transition: border-color 0.15s;
-    margin-bottom: 14px;
-  }
-  input[type="text"]:focus { border-color: var(--green-400); }
-  input[type="text"]::placeholder { color: var(--gray-400); }
+/* ── LEFT PANEL: CALENDAR ── */
+.cal-panel{width:360px;flex-shrink:0;background:var(--white);border-right:1px solid var(--gray-200);display:flex;flex-direction:column;overflow:hidden;position:sticky;top:var(--topbar-h);height:calc(100vh - var(--topbar-h))}
+.cal-header{background:var(--green-700);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cal-header h3{font-size:14px;font-weight:600;color:var(--white)}
+.cal-nav{background:none;border:none;color:var(--white);font-size:18px;cursor:pointer;padding:2px 10px;border-radius:4px;transition:background 0.15s;line-height:1}
+.cal-nav:hover{background:rgba(255,255,255,0.15)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:10px 10px 6px;gap:2px;flex-shrink:0}
+.cal-dow{text-align:center;font-size:10px;font-weight:600;color:var(--gray-400);text-transform:uppercase;padding:4px 0}
+.cal-day{text-align:center;font-size:12px;padding:5px 2px;border-radius:6px;cursor:default;color:var(--gray-500);line-height:1.3;position:relative;transition:all 0.15s;min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px}
+.cal-day.other-month{color:var(--gray-200)}
+.cal-day.today{background:var(--green-50);color:var(--green-700);font-weight:600}
+.cal-day.has-event{cursor:pointer;font-weight:600}
+.cal-day.has-event:hover{background:var(--gray-100)}
+.cal-day.active-filter{background:var(--green-500)!important;color:var(--white)!important;border-radius:6px}
+.cal-dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+.cal-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dot-unanswered{background:var(--gray-300)}
+.dot-0{background:var(--red-400)}
+.dot-1{background:var(--yellow-400)}
+.dot-2{background:var(--green-400)}
+.dot-3{background:var(--green-700)}
 
-  .btn-green {
-    width: 100%;
-    background: var(--green-500);
-    color: var(--white);
-    border: none;
-    padding: 11px 20px;
-    border-radius: var(--radius-md);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-  }
-  .btn-green:hover { background: var(--green-600); }
-  .btn-green:active { transform: scale(0.98); }
+/* Calendar legend */
+.cal-legend{flex:1;overflow-y:auto;padding:8px 12px 12px;border-top:1px solid var(--gray-100)}
+.cal-legend-title{font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.clear-filter{background:none;border:none;font-size:11px;color:var(--green-500);cursor:pointer;font-family:'DM Sans',sans-serif}
+.clear-filter:hover{color:var(--green-700)}
+.cal-event-row{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background 0.1s}
+.cal-event-row:hover{background:var(--gray-50)}
+.cal-event-row.highlighted{background:var(--green-50);border:1px solid var(--green-200)}
+.cal-ev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cal-ev-name{font-size:12px;color:var(--gray-700);line-height:1.3;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-ev-date{font-size:10px;color:var(--gray-400);font-family:'DM Mono',monospace;white-space:nowrap}
+.cal-empty{font-size:12px;color:var(--gray-400);text-align:center;padding:16px 0}
 
-  .error-msg {
-    font-size: 13px;
-    color: #c0392b;
-    margin-top: 10px;
-    display: none;
-  }
+/* Status legend */
+.status-legend{padding:10px 12px;border-top:1px solid var(--gray-100);flex-shrink:0}
+.status-legend-title{font-size:10px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.status-items{display:flex;flex-wrap:wrap;gap:6px}
+.status-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gray-500)}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
-  /* SURVEY HEADER */
-  .survey-header {
-    margin-bottom: 20px;
-  }
-  .survey-header h1 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--gray-800);
-    margin-bottom: 4px;
-  }
-  .survey-header p {
-    font-size: 13px;
-    color: var(--gray-600);
-  }
+/* ── RIGHT PANEL: SURVEY ── */
+.survey-panel{flex:1;overflow-y:auto;padding:0;min-width:0}
+.survey-inner{max-width:720px;margin:0 auto;padding:20px 20px 80px}
 
-  /* PROGRESS */
-  .progress-wrap { margin-bottom: 20px; }
-  .progress-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 7px;
-  }
-  .progress-label { font-size: 12px; color: var(--gray-600); }
-  .progress-pct {
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    color: var(--green-600);
-    font-weight: 500;
-  }
-  .progress-bar {
-    height: 5px;
-    background: var(--gray-200);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--green-400), var(--lime-500));
-    border-radius: 3px;
-    transition: width 0.4s ease;
-  }
+/* ── PROGRESS ── */
+.progress-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
+.progress-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.progress-label{font-size:13px;font-weight:500;color:var(--gray-700)}
+.progress-remaining{font-size:12px;color:var(--gray-400)}
+.progress-time{font-size:12px;color:var(--green-600);font-weight:500}
+.progress-bar{height:6px;background:var(--gray-100);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--green-400),var(--lime-500));border-radius:3px;transition:width 0.5s ease}
+.summary-counts{display:flex;gap:14px;flex-wrap:wrap}
+.sum-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--gray-500)}
+.sum-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
-  /* SUMMARY BAR */
-  .summary-bar {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    padding: 10px 14px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .summary-label { font-size: 12px; color: var(--gray-600); font-weight: 500; }
-  .summary-counts { display: flex; gap: 14px; flex-wrap: wrap; }
-  .sum-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--gray-600); }
-  .sum-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+/* ── MONTH GROUP ── */
+.month-group{margin-bottom:8px}
+.month-header{font-size:13px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;padding:10px 0 6px;position:sticky;top:0;background:var(--gray-50);z-index:10;border-bottom:1px solid var(--gray-200);margin-bottom:8px}
 
-  /* EVENT CARD */
-  .event-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    padding: 16px 18px;
-    margin-bottom: 10px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-shadow: var(--shadow-sm);
-  }
-  .event-card.answered {
-    border-color: var(--green-200);
-    box-shadow: 0 1px 6px rgba(34,192,114,0.1);
-  }
-  .event-tags {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 9px;
-    flex-wrap: wrap;
-  }
-  .tag {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 9px;
-    border-radius: 20px;
-  }
-  .tag-date {
-    background: var(--green-50);
-    color: var(--green-700);
-    border: 1px solid var(--green-100);
-  }
-  .tag-section {
-    background: var(--gray-100);
-    color: var(--gray-600);
-    border: 1px solid var(--gray-200);
-  }
-  .event-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--gray-800);
-    margin-bottom: 5px;
-    line-height: 1.4;
-  }
-  .event-desc {
-    font-size: 13px;
-    color: var(--gray-600);
-    line-height: 1.65;
-    margin-bottom: 13px;
-  }
-  .interest-row { display: flex; gap: 6px; flex-wrap: wrap; }
+/* ── EVENT CARD ── */
+.event-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius-lg);margin-bottom:8px;box-shadow:var(--shadow-sm);transition:border-color 0.2s,box-shadow 0.2s;overflow:hidden}
+.event-card.answered{border-color:var(--green-200)}
+.event-card.highlighted{border-color:var(--green-400);box-shadow:0 0 0 3px rgba(34,192,114,0.15);animation:pulse-card 0.6s ease}
+@keyframes pulse-card{0%{box-shadow:0 0 0 0 rgba(34,192,114,0.4)}70%{box-shadow:0 0 0 8px rgba(34,192,114,0)}100%{box-shadow:0 0 0 3px rgba(34,192,114,0.15)}}
 
-  .ibt {
-    padding: 7px 16px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    border-radius: 20px;
-    cursor: pointer;
-    border: 1.5px solid var(--gray-200);
-    background: var(--white);
-    color: var(--gray-600);
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .ibt:hover { border-color: var(--green-400); color: var(--green-600); }
-  .ibt-0, .ibt-1, .ibt-2, .ibt-3 { border-color: var(--gray-200); color: var(--gray-600); }
-  .ibt.active { background: var(--green-500); border-color: var(--green-500); color: var(--white); font-weight: 600; }
+/* Card summary (always visible) */
+.card-summary{padding:14px 16px;cursor:pointer;user-select:none}
+.card-summary:hover .card-name{color:var(--green-600)}
+.card-tags{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.tag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
+.tag-date{background:var(--green-50);color:var(--green-700);border:1px solid var(--green-100)}
+.tag-section{background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200)}
+.tag-answered{font-size:10px;padding:2px 7px;border-radius:20px;margin-left:auto;font-weight:600}
+.card-name{font-size:14px;font-weight:600;color:var(--gray-800);line-height:1.4;margin-bottom:4px;transition:color 0.15s}
+.card-location{font-size:12px;color:var(--gray-400);display:flex;align-items:center;gap:4px}
+.expand-hint{font-size:11px;color:var(--gray-400);margin-top:6px;display:flex;align-items:center;gap:4px}
+.expand-arrow{transition:transform 0.2s;display:inline-block}
+.event-card.expanded .expand-arrow{transform:rotate(180deg)}
 
-  /* FOOTER */
-  .footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 16px;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .btn-show-more {
-    background: var(--white);
-    border: 1.5px solid var(--green-400);
-    border-radius: var(--radius-md);
-    padding: 9px 18px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--green-600);
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-  }
-  .btn-show-more:hover { background: var(--green-50); }
-  .btn-show-more:active { transform: scale(0.98); }
-  .all-shown {
-    font-size: 13px;
-    color: var(--gray-400);
-    font-style: italic;
-  }
+/* Card details (collapsible) */
+.card-details{max-height:0;overflow:hidden;transition:max-height 0.3s ease,opacity 0.3s ease;opacity:0;padding:0 16px}
+.event-card.expanded .card-details{max-height:600px;opacity:1;padding:0 16px 4px}
+.card-desc{font-size:13px;color:var(--gray-500);line-height:1.7;padding-bottom:12px;border-bottom:1px solid var(--gray-100);margin-bottom:12px;white-space:pre-line}
 
-  .btn-submit {
-    background: var(--green-500);
-    color: var(--white);
-    border: none;
-    padding: 10px 22px;
-    border-radius: var(--radius-md);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s, opacity 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-  .btn-submit:hover:not(:disabled) { background: var(--green-600); }
-  .btn-submit:active:not(:disabled) { transform: scale(0.98); }
-  .btn-submit:disabled { opacity: 0.35; cursor: not-allowed; }
+/* Interest controls */
+.interest-section{padding:12px 16px 14px}
+.interest-label{font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px}
+.interest-controls{display:flex;gap:8px;flex-wrap:wrap}
+.ictl{flex:1;min-width:100px;padding:10px 8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border-radius:var(--radius-md);cursor:pointer;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);transition:all 0.15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:56px;justify-content:center}
+.ictl:hover{border-color:var(--green-300,#86efac);color:var(--green-600);background:var(--green-50)}
+.ictl-icon{font-size:16px;line-height:1}
+.ictl.active-0{background:#fef2f2;border-color:#fca5a5;color:#dc2626;font-weight:600}
+.ictl.active-1{background:#fffbeb;border-color:#fcd34d;color:#b45309;font-weight:600}
+.ictl.active-2{background:var(--green-50);border-color:var(--green-400);color:var(--green-700);font-weight:600}
+.ictl.active-3{background:var(--green-700);border-color:var(--green-700);color:var(--white);font-weight:600}
 
-  /* SPINNER */
-  .spinner {
-    width: 14px; height: 14px;
-    border: 2px solid rgba(255,255,255,0.4);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: none;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* ── FOOTER ── */
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:12px;flex-wrap:wrap}
+.btn-show-more{background:var(--white);border:1.5px solid var(--green-400);border-radius:var(--radius-md);padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--green-600);cursor:pointer;transition:background 0.15s}
+.btn-show-more:hover{background:var(--green-50)}
+.all-shown{font-size:13px;color:var(--gray-400);font-style:italic}
+.btn-submit{background:var(--green-500);color:var(--white);border:none;padding:11px 24px;border-radius:var(--radius-md);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;display:flex;align-items:center;gap:7px}
+.btn-submit:hover:not(:disabled){background:var(--green-600)}
+.btn-submit:disabled{opacity:0.35;cursor:not-allowed}
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.success-box{background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-lg);padding:20px;text-align:center;margin-top:16px;animation:fadeIn 0.3s ease}
+.success-box h3{font-size:16px;font-weight:600;color:var(--green-700);margin-bottom:6px}
+.success-box p{font-size:13px;color:var(--green-600);line-height:1.6}
+.error-box{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-md);padding:12px 16px;margin-top:12px;font-size:13px;color:#c0392b;display:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
-  /* SUCCESS */
-  .success-box {
-    background: var(--green-50);
-    border: 1px solid var(--green-200);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    text-align: center;
-    margin-top: 16px;
-    animation: fadeIn 0.3s ease;
-  }
-  .success-box h3 { font-size: 16px; font-weight: 600; color: var(--green-700); margin-bottom: 6px; }
-  .success-box p { font-size: 13px; color: var(--green-600); line-height: 1.6; }
+/* ── LOGIN ── */
+.login-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - var(--topbar-h));padding:20px}
+.login-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-xl);padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:var(--shadow-md)}
+.login-icon{width:52px;height:52px;background:var(--green-50);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:24px}
+.login-card h2{font-size:20px;font-weight:600;margin-bottom:8px}
+.login-card p{font-size:14px;color:var(--gray-500);line-height:1.6;margin-bottom:24px}
+.field-label{font-size:12px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;display:block}
+input[type="text"]{width:100%;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);background:var(--white);color:var(--gray-800);outline:none;transition:border-color 0.15s;margin-bottom:14px}
+input[type="text"]:focus{border-color:var(--green-400)}
+input[type="text"]::placeholder{color:var(--gray-400)}
+.btn-green-full{width:100%;background:var(--green-500);color:var(--white);border:none;padding:11px 20px;border-radius:var(--radius-md);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s}
+.btn-green-full:hover{background:var(--green-600)}
+.error-msg{font-size:13px;color:#c0392b;margin-top:10px;display:none}
 
-  .error-box {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
-    margin-top: 12px;
-    font-size: 13px;
-    color: #c0392b;
-    display: none;
-  }
-
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-  .admin-link { font-size: 12px; color: rgba(255,255,255,0.5); text-decoration: none; font-family: 'DM Sans', sans-serif; letter-spacing: 0.03em; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 10px; transition: all 0.15s; }
-  .admin-link:hover { color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.4); }
-
-  /* MINI CALENDAR */
-  .cal-wrap {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-  .cal-header {
-    background: var(--green-700);
-    color: var(--white);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .cal-header h3 { font-size: 14px; font-weight: 600; }
-  .cal-nav {
-    background: none;
-    border: none;
-    color: var(--white);
-    font-size: 16px;
-    cursor: pointer;
-    padding: 2px 8px;
-    border-radius: 4px;
-    transition: background 0.15s;
-  }
-  .cal-nav:hover { background: rgba(255,255,255,0.15); }
-  .cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    padding: 12px;
-    gap: 3px;
-  }
-  .cal-dow {
-    text-align: center;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--gray-400);
-    text-transform: uppercase;
-    padding: 4px 0;
-  }
-  .cal-day {
-    text-align: center;
-    font-size: 12px;
-    padding: 6px 2px;
-    border-radius: 6px;
-    cursor: default;
-    position: relative;
-    color: var(--gray-600);
-    line-height: 1.2;
-  }
-  .cal-day.other-month { color: var(--gray-200); }
-  .cal-day.today {
-    background: var(--green-50);
-    color: var(--green-700);
-    font-weight: 600;
-  }
-  .cal-day.has-event {
-    background: var(--green-500);
-    color: var(--white);
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .cal-day.has-event:hover { background: var(--green-600); }
-  .cal-day.has-event.today { background: var(--green-700); }
-  .cal-legend {
-    padding: 10px 14px 14px;
-    border-top: 1px solid var(--gray-100);
-  }
-  .cal-legend-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--gray-500);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 8px;
-  }
-  .cal-event-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--gray-100);
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-  .cal-event-item:last-child { border-bottom: none; }
-  .cal-event-item:hover .cal-event-name { color: var(--green-600); }
-  .cal-event-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--green-400);
-    flex-shrink: 0;
-    margin-top: 3px;
-  }
-  .cal-event-name {
-    font-size: 12px;
-    color: var(--gray-700);
-    line-height: 1.4;
-    transition: color 0.1s;
-  }
-  .cal-event-date {
-    font-size: 11px;
-    color: var(--gray-400);
-    font-family: 'DM Mono', monospace;
-    white-space: nowrap;
-    flex-shrink: 0;
-    margin-left: auto;
-    padding-left: 6px;
-  }
-  .cal-empty { font-size: 12px; color: var(--gray-400); text-align: center; padding: 12px 0; }
-
-  /* SPLIT LAYOUT */
-  .split-layout {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 20px 12px 60px;
-  }
-  .calendar-panel {
-    flex: 0 0 640px;
-    position: sticky;
-    top: 70px;
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    height: calc(100vh - 100px);
-  }
-  .calendar-panel iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    display: block;
-  }
-  .survey-panel {
-    flex: 1;
-    min-width: 0;
-  }
-
-  /* RESPONSIVE */
-  @media (max-width: 500px) {
-    .topbar { padding: 12px 16px; }
-    .main { padding: 20px 14px 60px; }
-    .login-card { padding: 2rem 1.5rem; }
-    .summary-counts { gap: 10px; }
-  }
+/* ── MOBILE ── */
+@media(max-width:800px){
+  .layout{flex-direction:column;height:auto}
+  .cal-panel{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--gray-200)}
+  .cal-legend{max-height:200px}
+  .survey-inner{padding:16px 14px 80px}
+  .interest-controls{gap:6px}
+  .ictl{min-width:70px;padding:8px 6px;font-size:12px}
+}
 </style>
 </head>
 <body>
 
-<div class="topbar" id="topbar">
+<div class="topbar">
   <div class="topbar-logo">Splat<span>Lab</span> &nbsp;·&nbsp; Event Survey</div>
-  <div style="display:flex;align-items:center;gap:14px">
+  <div class="topbar-right">
     <a href="admin.html" class="admin-link">Admin</a>
-    <div class="topbar-user" id="topbarUser" style="display:none">
+    <div id="topbarUser" style="display:none;align-items:center;gap:8px;display:none">
       <div class="user-pill"><span class="user-dot"></span><span id="topbarName"></span></div>
       <button class="switch-btn" onclick="switchUser()">Switch user</button>
     </div>
   </div>
 </div>
 
-<div class="split-layout" id="splitLayout">
-  <div class="calendar-panel" id="calendarPanel" style="display:none">
-    <iframe class="airtable-embed" src="https://airtable.com/embed/appJQfkR5k7lLG0hY/shr6nI0YlETYwzoYB" frameborder="0" onmousewheel="" width="100%" height="100%" style="background:transparent;border:none;display:block"></iframe>
-  </div>
-  <div class="survey-panel" id="surveyPanel">
-    <div id="app"></div>
-  </div>
-</div>
+<div id="root"></div>
 
 <script>
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/11843729/4ysxr77/';
 const PAGE_SIZE = 5;
 
-// ─── EVENTS ──────────────────────────────────────────────────────────────────
-async function fetchEventsFromAirtable(){
-  try{
-    const res  = await fetch('/.netlify/functions/events');
-    const data = await res.json();
-    if(!res.ok || data.error) return null;
-    return data.events || [];
-  } catch(e){ return null; }
-}
-
-let EVENTS = [];
-
 const LEVELS = [
-  {label:'Not interested', val:0},
-  {label:'Maybe',          val:1},
-  {label:'Interested',     val:2},
-  {label:'Very interested', val:3},
+  {label:'Not interested', icon:'✕', val:0},
+  {label:'Maybe',          icon:'〜', val:1},
+  {label:'Interested',     icon:'★', val:2},
+  {label:'Very interested',icon:'🔥', val:3},
 ];
-const SUM_COLORS = ['#d1d5db','#86efac','#22c072','#15803d'];
+const LEVEL_COLORS = ['#ef4444','#f59e0b','#22c072','#07703c'];
+const LEVEL_BG     = ['#fef2f2','#fffbeb','#e8faf2','#e8faf2'];
 
-let currentUser = '';
-let responses   = {};
+let currentUser  = '';
+let responses    = {};
+let EVENTS       = [];
 let visibleCount = PAGE_SIZE;
+let activeFilter = null; // date string filter
 
-// ─── LOCAL STORAGE (browser) ──────────────────────────────────────────────────
-function lsKey(u){ return 'splat_survey__' + u.trim().toLowerCase().replace(/\s+/g,'_'); }
-function saveLocal(){ try{ localStorage.setItem(lsKey(currentUser), JSON.stringify(responses)); }catch(e){} }
-function loadLocal(){ try{ const v = localStorage.getItem(lsKey(currentUser)); responses = v ? JSON.parse(v) : {}; }catch(e){ responses={}; } }
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+function lsKey(u){ return 'splat_survey__'+u.trim().toLowerCase().replace(/\s+/g,'_'); }
+function saveLocal(){ try{localStorage.setItem(lsKey(currentUser),JSON.stringify(responses));}catch(e){} }
+function loadLocal(){ try{const v=localStorage.getItem(lsKey(currentUser));responses=v?JSON.parse(v):{}}catch(e){responses={};} }
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 
 function stats(){
-  const done = EVENTS.filter(e=>responses[e.id]!==undefined).length;
-  const counts = [0,0,0,0];
-  EVENTS.forEach(e=>{ if(responses[e.id]!==undefined) counts[responses[e.id]]++; });
-  return { done, pct: Math.round((done/EVENTS.length)*100), counts };
+  const done=EVENTS.filter(e=>responses[e.id]!==undefined).length;
+  const remaining=EVENTS.length-done;
+  const pct=Math.round((done/EVENTS.length)*100)||0;
+  const counts=[0,0,0,0];
+  EVENTS.forEach(e=>{if(responses[e.id]!==undefined)counts[responses[e.id]]++;});
+  const estSecs=remaining*15;
+  const estMin=Math.ceil(estSecs/60);
+  return{done,remaining,pct,counts,estMin};
 }
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
+function groupByMonth(events){
+  const groups={};
+  events.forEach(e=>{
+    let key='TBD';
+    if(e.date && e.date!=='TBD'){
+      const d=new Date(e.date);
+      if(!isNaN(d)) key=d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    }
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(e);
+  });
+  return groups;
+}
+
+function dotClass(eventId){
+  const v=responses[eventId];
+  if(v===undefined) return 'dot-unanswered';
+  return 'dot-'+v;
+}
+
+function responseColor(val){
+  if(val===undefined) return '#c5d1c5';
+  return LEVEL_COLORS[val];
+}
+
+// ── AIRTABLE FETCH ────────────────────────────────────────────────────────────
+async function fetchEventsFromAirtable(){
+  try{
+    const res=await fetch('/.netlify/functions/events');
+    const data=await res.json();
+    if(!res.ok||data.error) return null;
+    return data.events||[];
+  }catch(e){return null;}
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────────
+let calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth();
+
+function renderCalendar(){
+  const wrap=document.getElementById('calWrap');
+  if(!wrap) return;
+
+  const today=new Date();
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev=new Date(calYear,calMonth,0).getDate();
+  const monthName=new Date(calYear,calMonth).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  // Map events to days
+  const eventsByDay={};
+  EVENTS.forEach(e=>{
+    if(!e.date||e.date==='TBD') return;
+    const d=new Date(e.date);
+    if(isNaN(d)||d.getFullYear()!==calYear||d.getMonth()!==calMonth) return;
+    const day=d.getDate();
+    if(!eventsByDay[day]) eventsByDay[day]=[];
+    eventsByDay[day].push(e);
+  });
+
+  // Grid cells
+  const DOW=['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let cells=DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  for(let i=firstDay-1;i>=0;i--) cells+=`<div class="cal-day other-month">${daysInPrev-i}</div>`;
+
+  for(let d=1;d<=daysInMonth;d++){
+    const isToday=d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+    const evs=eventsByDay[d]||[];
+    const hasEv=evs.length>0;
+    const dateStr=new Date(calYear,calMonth,d).toDateString();
+    const isActive=activeFilter===dateStr;
+    let cls='cal-day';
+    if(isToday) cls+=' today';
+    if(hasEv)   cls+=' has-event';
+    if(isActive) cls+=' active-filter';
+    const dots=evs.map(e=>`<span class="cal-dot ${dotClass(e.id)}"></span>`).join('');
+    const onclick=hasEv?`onclick="filterByDate('${dateStr}')"` :'';
+    const title=hasEv?`title="${evs.length} event${evs.length>1?'s':''}"` :'';
+    cells+=`<div class="${cls}" ${onclick} ${title}>${d}${dots?`<div class="cal-dots">${dots}</div>`:''}</div>`;
+  }
+
+  const totalCells=Math.ceil((firstDay+daysInMonth)/7)*7;
+  for(let d=1;d<=totalCells-firstDay-daysInMonth;d++) cells+=`<div class="cal-day other-month">${d}</div>`;
+
+  // Legend
+  const monthEvents=EVENTS.filter(e=>{
+    if(!e.date||e.date==='TBD') return false;
+    const d=new Date(e.date);
+    return !isNaN(d)&&d.getFullYear()===calYear&&d.getMonth()===calMonth;
+  });
+
+  let legend='';
+  if(monthEvents.length===0){
+    legend=`<div class="cal-empty">No events this month</div>`;
+  } else {
+    monthEvents.forEach(e=>{
+      const col=responseColor(responses[e.id]);
+      const isHL=document.getElementById('card-'+e.id)?.classList.contains('highlighted');
+      legend+=`<div class="cal-event-row${isHL?' highlighted':''}" id="cal-row-${e.id}" onclick="scrollToCard('${e.id}')">
+        <span class="cal-ev-dot" style="background:${col}"></span>
+        <span class="cal-ev-name">${esc(e.name.length>38?e.name.substring(0,38)+'…':e.name)}</span>
+        <span class="cal-ev-date">${e.date}</span>
+      </div>`;
+    });
+  }
+
+  wrap.innerHTML=`
+    <div class="cal-header">
+      <button class="cal-nav" onclick="changeMonth(-1)" aria-label="Previous month">&#8249;</button>
+      <h3>${monthName}</h3>
+      <button class="cal-nav" onclick="changeMonth(1)" aria-label="Next month">&#8250;</button>
+    </div>
+    <div class="cal-grid">${cells}</div>
+    <div class="cal-legend">
+      <div class="cal-legend-title">
+        Events this month
+        ${activeFilter?`<button class="clear-filter" onclick="clearFilter()">Clear filter</button>`:''}
+      </div>
+      ${legend}
+    </div>
+    <div class="status-legend">
+      <div class="status-legend-title">Response status</div>
+      <div class="status-items">
+        <div class="status-item"><span class="status-dot" style="background:#c5d1c5"></span>Not answered</div>
+        <div class="status-item"><span class="status-dot" style="background:#ef4444"></span>Not interested</div>
+        <div class="status-item"><span class="status-dot" style="background:#f59e0b"></span>Maybe</div>
+        <div class="status-item"><span class="status-dot" style="background:#22c072"></span>Interested</div>
+        <div class="status-item"><span class="status-dot" style="background:#07703c"></span>Very interested</div>
+      </div>
+    </div>`;
+}
+
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  activeFilter=null;
+  renderCalendar();
+}
+
+function filterByDate(dateStr){
+  activeFilter=activeFilter===dateStr?null:dateStr;
+  renderCalendar();
+  renderEventList();
+}
+
+function clearFilter(){
+  activeFilter=null;
+  renderCalendar();
+  renderEventList();
+}
+
+function scrollToCard(eventId){
+  // Ensure card is visible
+  const idx=EVENTS.findIndex(e=>e.id===eventId);
+  const filtered=activeFilter?EVENTS.filter(e=>{
+    if(!e.date||e.date==='TBD') return false;
+    return new Date(e.date).toDateString()===activeFilter;
+  }):EVENTS;
+  const fidx=filtered.findIndex(e=>e.id===eventId);
+  if(fidx>=visibleCount){visibleCount=fidx+1;renderEventList();}
+
+  setTimeout(()=>{
+    const card=document.getElementById('card-'+eventId);
+    if(!card) return;
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+    // Highlight card
+    card.classList.add('highlighted');
+    // Highlight cal row
+    document.querySelectorAll('.cal-event-row').forEach(r=>r.classList.remove('highlighted'));
+    const row=document.getElementById('cal-row-'+eventId);
+    if(row) row.classList.add('highlighted');
+    setTimeout(()=>{card.classList.remove('highlighted');},2000);
+  },100);
+}
+
+// ── SURVEY RENDER ─────────────────────────────────────────────────────────────
+function renderSurvey(){
+  const s=stats();
+  const root=document.getElementById('root');
+
+  root.innerHTML=`
+    <div class="layout">
+      <div class="cal-panel"><div id="calWrap"></div></div>
+      <div class="survey-panel">
+        <div class="survey-inner">
+          <div class="progress-card">
+            <div class="progress-top">
+              <span class="progress-label">${s.done} of ${EVENTS.length} events answered</span>
+              <span class="progress-time">${s.remaining>0?`${s.remaining} remaining · ~${s.estMin} min`:'All done!'}</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:${s.pct}%"></div></div>
+            <div class="summary-counts">
+              ${LEVELS.map((l,i)=>`<div class="sum-item"><span class="sum-dot" style="background:${LEVEL_COLORS[i]}"></span><span id="sc-${i}">${s.counts[i]}</span> ${l.label}</div>`).join('')}
+            </div>
+          </div>
+          <div id="eventList"></div>
+          <div class="footer" id="footer">
+            <div id="showMoreSlot"></div>
+            <button class="btn-submit" id="submitBtn" onclick="submitSurvey()" ${s.done===0?'disabled':''}>
+              <span id="submitLabel">Submit responses</span>
+              <span class="spinner" id="submitSpinner"></span>
+            </button>
+          </div>
+          <div class="error-box" id="submitError">Something went wrong. Please try again.</div>
+        </div>
+      </div>
+    </div>`;
+
+  renderCalendar();
+  renderEventList();
+}
+
+function renderEventList(){
+  const listEl=document.getElementById('eventList');
+  const slotEl=document.getElementById('showMoreSlot');
+  if(!listEl) return;
+
+  // Apply date filter
+  let eventsToShow=EVENTS;
+  if(activeFilter){
+    eventsToShow=EVENTS.filter(e=>{
+      if(!e.date||e.date==='TBD') return false;
+      return new Date(e.date).toDateString()===activeFilter;
+    });
+  }
+
+  const visible=eventsToShow.slice(0,visibleCount);
+  const remaining=eventsToShow.length-visibleCount;
+  const groups=groupByMonth(visible);
+
+  let html='';
+  Object.entries(groups).forEach(([month,evs])=>{
+    html+=`<div class="month-group"><div class="month-header">${month}</div>`;
+    evs.forEach(ev=>{html+=cardHTML(ev);});
+    html+=`</div>`;
+  });
+
+  if(!html) html=`<div style="text-align:center;padding:40px;color:var(--gray-400);font-size:14px">No events found for this date.</div>`;
+  listEl.innerHTML=html;
+
+  if(slotEl){
+    slotEl.innerHTML=remaining>0
+      ?`<button class="btn-show-more" onclick="showMore()">Show ${Math.min(PAGE_SIZE,remaining)} more <span style="opacity:0.6">(${remaining} left)</span></button>`
+      :`<span class="all-shown">All ${eventsToShow.length} events shown</span>`;
+  }
+}
+
+function cardHTML(ev){
+  const sel=responses[ev.id];
+  const answered=sel!==undefined;
+  const answerLabel=answered?LEVELS[sel].label:'';
+  const answerColor=answered?LEVEL_COLORS[sel]:'';
+  const answerBg=answered?LEVEL_BG[sel]:'';
+
+  let btns=LEVELS.map(l=>`
+    <button class="ictl${sel===l.val?' active-'+l.val:''}"
+      onclick="pick('${ev.id}',${l.val},event)"
+      aria-label="${l.label}"
+      aria-pressed="${sel===l.val}">
+      <span class="ictl-icon">${l.icon}</span>
+      <span>${l.label}</span>
+    </button>`).join('');
+
+  return `<div class="event-card${answered?' answered':''}" id="card-${ev.id}">
+    <div class="card-summary" onclick="toggleCard('${ev.id}')" role="button" aria-expanded="false" id="summary-${ev.id}">
+      <div class="card-tags">
+        <span class="tag tag-date">${ev.date}</span>
+        ${ev.section?`<span class="tag tag-section">${esc(ev.section)}</span>`:''}
+        ${answered?`<span class="tag-answered" style="background:${answerBg};color:${answerColor};border:1px solid ${answerColor}40">${answerLabel}</span>`:''}
+      </div>
+      <div class="card-name">${esc(ev.name)}</div>
+      <div class="expand-hint">
+        <span class="expand-arrow">▾</span>
+        <span>${answered?'Edit response · ':'Answer · '} tap to ${answered?'see details':'expand'}</span>
+      </div>
+    </div>
+    <div class="card-details" id="details-${ev.id}">
+      ${ev.desc?`<div class="card-desc">${esc(ev.desc).replace(/\n/g,'<br>')}</div>`:''}
+    </div>
+    <div class="interest-section">
+      <div class="interest-label">Your interest level</div>
+      <div class="interest-controls" id="controls-${ev.id}">${btns}</div>
+    </div>
+  </div>`;
+}
+
+function toggleCard(eventId){
+  const card=document.getElementById('card-'+eventId);
+  const summary=document.getElementById('summary-'+eventId);
+  if(!card) return;
+  card.classList.toggle('expanded');
+  summary.setAttribute('aria-expanded',card.classList.contains('expanded'));
+}
+
+function showMore(){
+  visibleCount+=PAGE_SIZE;
+  renderEventList();
+}
+
+// ── PICK ──────────────────────────────────────────────────────────────────────
+function pick(eventId,val,e){
+  e.stopPropagation();
+  if(responses[eventId]===val){delete responses[eventId];}
+  else{responses[eventId]=val;}
+  saveLocal();
+
+  // Update card buttons
+  const controls=document.getElementById('controls-'+eventId);
+  if(controls){
+    controls.querySelectorAll('.ictl').forEach((b,i)=>{
+      b.className='ictl'+(responses[eventId]===i?' active-'+i:'');
+      b.setAttribute('aria-pressed',responses[eventId]===i);
+    });
+  }
+
+  // Update card classes and answer badge
+  const card=document.getElementById('card-'+eventId);
+  const summary=document.getElementById('summary-'+eventId);
+  if(card){
+    const answered=responses[eventId]!==undefined;
+    if(answered) card.classList.add('answered'); else card.classList.remove('answered');
+    // Update badge in tags
+    const tagsEl=summary?.querySelector('.card-tags');
+    if(tagsEl){
+      tagsEl.querySelector('.tag-answered')?.remove();
+      if(answered){
+        const badge=document.createElement('span');
+        badge.className='tag-answered';
+        badge.style.cssText=`background:${LEVEL_BG[val]};color:${LEVEL_COLORS[val]};border:1px solid ${LEVEL_COLORS[val]}40`;
+        badge.textContent=LEVELS[val].label;
+        tagsEl.appendChild(badge);
+      }
+    }
+    // Highlight calendar row
+    highlightCalRow(eventId);
+  }
+  updateStats();
+  renderCalendar(); // refresh dots
+}
+
+function highlightCalRow(eventId){
+  document.querySelectorAll('.cal-event-row').forEach(r=>r.classList.remove('highlighted'));
+  const row=document.getElementById('cal-row-'+eventId);
+  if(row){
+    row.classList.add('highlighted');
+    setTimeout(()=>row.classList.remove('highlighted'),2000);
+  }
+}
+
+function updateStats(){
+  const s=stats();
+  const fill=document.getElementById('progressFill');
+  const btn=document.getElementById('submitBtn');
+  if(fill) fill.style.width=s.pct+'%';
+  if(btn)  btn.disabled=(s.done===0);
+  const remaining=document.querySelector('.progress-time');
+  if(remaining) remaining.textContent=s.remaining>0?`${s.remaining} remaining · ~${s.estMin} min`:'All done!';
+  const label=document.querySelector('.progress-label');
+  if(label) label.textContent=`${s.done} of ${EVENTS.length} events answered`;
+  LEVELS.forEach((l,i)=>{const el=document.getElementById('sc-'+i);if(el)el.textContent=s.counts[i];});
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+async function submitSurvey(){
+  const btn=document.getElementById('submitBtn');
+  const label=document.getElementById('submitLabel');
+  const spinner=document.getElementById('submitSpinner');
+  const errBox=document.getElementById('submitError');
+
+  btn.disabled=true;
+  label.textContent='Submitting...';
+  spinner.style.display='block';
+  errBox.style.display='none';
+
+  const events=[];
+  EVENTS.forEach(e=>{
+    if(responses[e.id]!==undefined){
+      events.push({name:e.name,date:e.date||'TBD',interest:LEVELS[responses[e.id]].label});
+    }
+  });
+  const payload={user:currentUser,submitted_at:new Date().toISOString(),events};
+
+  try{
+    await fetch(ZAPIER_WEBHOOK_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+    spinner.style.display='none';
+    label.textContent='Submitted';
+    const footer=document.getElementById('footer');
+    if(footer) footer.insertAdjacentHTML('afterend',`<div class="success-box"><h3>Thank you!</h3><p>${events.length} event${events.length!==1?'s':''} answered. Your responses have been recorded.<br>You can come back anytime to update your choices.</p></div>`);
+  }catch(err){
+    spinner.style.display='none';
+    label.textContent='Submit responses';
+    btn.disabled=false;
+    errBox.style.display='block';
+  }
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
 function renderLogin(){
-  document.getElementById('topbarUser').style.display = 'none';
-  document.getElementById('app').innerHTML = `
+  document.getElementById('topbarUser').style.display='none';
+  document.getElementById('root').innerHTML=`
     <div class="login-wrap">
       <div class="login-card">
         <div class="login-icon">🎨</div>
@@ -631,341 +661,60 @@ function renderLogin(){
         <p>Enter your name or email to access your personal survey. Your answers are private and saved automatically.</p>
         <label class="field-label">Your name or email</label>
         <input type="text" id="userInput" placeholder="e.g. Sarah or sarah@example.com" onkeydown="if(event.key==='Enter')startSurvey()" />
-        <button class="btn-green" onclick="startSurvey()">Open my survey</button>
+        <button class="btn-green-full" onclick="startSurvey()">Open my survey</button>
         <p class="error-msg" id="loginError"></p>
       </div>
     </div>`;
+  setTimeout(()=>{const el=document.getElementById('userInput');if(el)el.focus();},50);
 }
 
-function startSurvey(){
-  const val = document.getElementById('userInput').value.trim();
-  const err = document.getElementById('loginError');
-  if(!val){ err.textContent='Please enter your name or email.'; err.style.display='block'; return; }
+async function startSurvey(){
+  const val=document.getElementById('userInput')?.value.trim();
+  const err=document.getElementById('loginError');
+  if(!val){err.textContent='Please enter your name or email.';err.style.display='block';return;}
   err.style.display='none';
-  currentUser = val;
-  visibleCount = PAGE_SIZE;
+  currentUser=val;
   loadLocal();
-  document.getElementById('topbarName').textContent = currentUser;
-  document.getElementById('topbarUser').style.display = 'flex';
-  loadAndRender();
-}
 
-// ─── SURVEY RENDER ────────────────────────────────────────────────────────────
-function renderSurvey(){
-  const {done, pct, counts} = stats();
-  const visible = EVENTS.slice(0, visibleCount);
-  const remaining = EVENTS.length - visibleCount;
-
-  let cards = '';
-  visible.forEach(ev => { cards += cardHTML(ev); });
-
-  const showMoreHTML = remaining > 0
-    ? `<button class="btn-show-more" onclick="showMore()">Show ${Math.min(PAGE_SIZE, remaining)} more <span style="font-weight:400;opacity:0.7">(${remaining} left)</span></button>`
-    : `<span class="all-shown">All ${EVENTS.length} events shown</span>`;
-
-  document.getElementById('app').innerHTML = `
-    <div class="main">
-      <div class="survey-header">
-        <h1>Upcoming events</h1>
-        <p>Rate your interest for each event. You can come back and update anytime.</p>
+  document.getElementById('root').innerHTML=`
+    <div class="login-wrap">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+        <div style="width:32px;height:32px;border:3px solid var(--green-100);border-top-color:var(--green-500);border-radius:50%;animation:spin 0.7s linear infinite"></div>
+        <p style="font-size:14px;color:var(--gray-400)">Loading events...</p>
       </div>
-
-      <div class="summary-bar">
-        <span class="summary-label">My responses</span>
-        <div class="summary-counts">
-          ${LEVELS.map((l,i)=>`<div class="sum-item"><span class="sum-dot" style="background:${SUM_COLORS[i]}"></span><span id="sc-${i}">${counts[i]}</span>&nbsp;${l.label}</div>`).join('')}
-        </div>
-      </div>
-
-      <div class="progress-wrap">
-        <div class="progress-meta">
-          <span class="progress-label" id="progressLabel">${done} of ${EVENTS.length} events answered</span>
-          <span class="progress-pct" id="progressPct">${pct}%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:${pct}%"></div></div>
-      </div>
-
-      <div id="cards">${cards}</div>
-
-      <div class="footer" id="footer">
-        <div id="showMoreSlot">${showMoreHTML}</div>
-        <button class="btn-submit" id="submitBtn" onclick="submitSurvey()" ${done===0?'disabled':''}>
-          <span id="submitLabel">Submit responses</span>
-          <span class="spinner" id="submitSpinner"></span>
-        </button>
-      </div>
-      <div class="error-box" id="submitError">Something went wrong. Please try again.</div>
-    </div>`;
-}
-
-function cardHTML(ev){
-  const sel = responses[ev.id];
-  const answered = sel !== undefined;
-  let btns = '';
-  LEVELS.forEach(l => {
-    const active = sel === l.val ? ' active' : '';
-    btns += `<button class="ibt ibt-${l.val}${active}" onclick="pick('${ev.id}',${l.val})">${l.label}</button>`;
-  });
-  return `<div class="event-card${answered?' answered':''}" id="card-${ev.id}">
-    <div class="event-tags">
-      <span class="tag tag-date">${ev.date}</span>
-      <span class="tag tag-section">${ev.section}</span>
-    </div>
-    <div class="event-name">${esc(ev.name)}</div>
-    <div class="event-desc">${esc(ev.desc).replace(/\n/g, "<br>")}</div>
-    <div class="interest-row">${btns}</div>
-  </div>`;
-}
-
-// ─── SHOW MORE ────────────────────────────────────────────────────────────────
-function showMore(){
-  const from = visibleCount;
-  visibleCount = Math.min(visibleCount + PAGE_SIZE, EVENTS.length);
-  const remaining = EVENTS.length - visibleCount;
-  EVENTS.slice(from, visibleCount).forEach(ev => {
-    document.getElementById('cards').insertAdjacentHTML('beforeend', cardHTML(ev));
-  });
-  const slot = document.getElementById('showMoreSlot');
-  slot.innerHTML = remaining > 0
-    ? `<button class="btn-show-more" onclick="showMore()">Show ${Math.min(PAGE_SIZE,remaining)} more <span style="font-weight:400;opacity:0.7">(${remaining} left)</span></button>`
-    : `<span class="all-shown">All ${EVENTS.length} events shown</span>`;
-}
-
-// ─── PICK ─────────────────────────────────────────────────────────────────────
-function pick(eventId, val){
-  if(responses[eventId]===val){ delete responses[eventId]; }
-  else { responses[eventId] = val; }
-  saveLocal();
-  const card = document.getElementById('card-'+eventId);
-  if(card){
-    card.querySelectorAll('.ibt').forEach((b,i)=>{
-      b.className = 'ibt ibt-'+i + (responses[eventId]===i?' active':'');
-    });
-    if(responses[eventId]!==undefined) card.classList.add('answered');
-    else card.classList.remove('answered');
-  }
-  updateStats();
-}
-
-function updateStats(){
-  const {done, pct, counts} = stats();
-  const fill  = document.getElementById('progressFill');
-  const label = document.getElementById('progressLabel');
-  const pctEl = document.getElementById('progressPct');
-  const btn   = document.getElementById('submitBtn');
-  if(fill)  fill.style.width  = pct+'%';
-  if(label) label.textContent = done+' of '+EVENTS.length+' events answered';
-  if(pctEl) pctEl.textContent = pct+'%';
-  if(btn)   btn.disabled      = (done===0);
-  LEVELS.forEach((l,i)=>{ const el=document.getElementById('sc-'+i); if(el) el.textContent=counts[i]; });
-}
-
-// ─── SUBMIT ───────────────────────────────────────────────────────────────────
-async function submitSurvey(){
-  const btn     = document.getElementById('submitBtn');
-  const label   = document.getElementById('submitLabel');
-  const spinner = document.getElementById('submitSpinner');
-  const errBox  = document.getElementById('submitError');
-
-  btn.disabled        = true;
-  label.textContent   = 'Submitting...';
-  spinner.style.display = 'block';
-  errBox.style.display  = 'none';
-
-  // Build structured payload - events as array for Zapier looping
-  const events = [];
-  EVENTS.forEach(e => {
-    if(responses[e.id] !== undefined){
-      events.push({
-        name:     e.name,
-        date:     e.date || 'TBD',
-        interest: LEVELS[responses[e.id]].label,
-      });
-    }
-  });
-  const payload = {
-    user:         currentUser,
-    submitted_at: new Date().toISOString(),
-    events:       events,
-  };
-
-  try {
-    await fetch(ZAPIER_WEBHOOK_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload),
-    });
-
-    spinner.style.display = 'none';
-    label.textContent = 'Submitted';
-
-    const done = EVENTS.filter(e=>responses[e.id]!==undefined).length;
-    document.getElementById('footer').insertAdjacentHTML('afterend',
-      `<div class="success-box">
-        <h3>Thank you!</h3>
-        <p>${done} event${done!==1?'s':''} answered. Your responses have been recorded.<br>You can come back anytime to update your choices.</p>
-      </div>`);
-  } catch(err){
-    spinner.style.display = 'none';
-    label.textContent     = 'Submit responses';
-    btn.disabled          = false;
-    errBox.style.display  = 'block';
-    console.error('Webhook error:', err);
-  }
-}
-
-// ─── SWITCH USER ──────────────────────────────────────────────────────────────
-function switchUser(){
-  currentUser = ''; responses = {}; visibleCount = PAGE_SIZE;
-  renderLogin();
-}
-
-
-// ─── MINI CALENDAR ────────────────────────────────────────────────────────────
-let calYear  = new Date().getFullYear();
-let calMonth = new Date().getMonth();
-
-function renderCalendar(){
-  const wrap = document.getElementById('calendarWrap');
-  if(!wrap) return;
-
-  const today    = new Date();
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const daysInPrev  = new Date(calYear, calMonth, 0).getDate();
-  const monthName = new Date(calYear, calMonth).toLocaleDateString('en-US', {month:'long', year:'numeric'});
-
-  // Map event dates to this month
-  const eventsByDay = {};
-  EVENTS.forEach(e => {
-    if(!e.date || e.date === 'TBD') return;
-    const d = new Date(e.date);
-    if(d.getFullYear() === calYear && d.getMonth() === calMonth){
-      const day = d.getDate();
-      if(!eventsByDay[day]) eventsByDay[day] = [];
-      eventsByDay[day].push(e);
-    }
-  });
-
-  // Events this month for legend
-  const monthEvents = EVENTS.filter(e => {
-    if(!e.date || e.date === 'TBD') return false;
-    const d = new Date(e.date);
-    return d.getFullYear() === calYear && d.getMonth() === calMonth;
-  });
-
-  // Build day cells
-  let cells = '';
-  const DOW = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-  DOW.forEach(d => { cells += `<div class="cal-dow">${d}</div>`; });
-
-  // Prev month days
-  for(let i = firstDay - 1; i >= 0; i--){
-    cells += `<div class="cal-day other-month">${daysInPrev - i}</div>`;
-  }
-
-  // Current month days
-  for(let d = 1; d <= daysInMonth; d++){
-    const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
-    const hasEv   = !!eventsByDay[d];
-    let cls = 'cal-day';
-    if(isToday) cls += ' today';
-    if(hasEv)   cls += ' has-event';
-    const onclick = hasEv ? `onclick="scrollToEvent('${eventsByDay[d][0].id}')"` : '';
-    cells += `<div class="${cls}" ${onclick}>${d}</div>`;
-  }
-
-  // Next month days
-  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
-  for(let d = 1; d <= totalCells - firstDay - daysInMonth; d++){
-    cells += `<div class="cal-day other-month">${d}</div>`;
-  }
-
-  // Legend events
-  let legendHTML = '';
-  if(monthEvents.length === 0){
-    legendHTML = `<div class="cal-empty">No events this month</div>`;
-  } else {
-    monthEvents.forEach(e => {
-      legendHTML += `
-        <div class="cal-event-item" onclick="scrollToEvent('${e.id}')">
-          <span class="cal-event-dot"></span>
-          <span class="cal-event-name">${esc(e.name.length > 40 ? e.name.substring(0,40)+'…' : e.name)}</span>
-          <span class="cal-event-date">${e.date}</span>
-        </div>`;
-    });
-  }
-
-  wrap.innerHTML = `
-    <div class="cal-header">
-      <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
-      <h3>${monthName}</h3>
-      <button class="cal-nav" onclick="changeMonth(1)">&#8250;</button>
-    </div>
-    <div class="cal-grid">${cells}</div>
-    <div class="cal-legend">
-      <div class="cal-legend-title">Events this month</div>
-      ${legendHTML}
-    </div>`;
-}
-
-function changeMonth(dir){
-  calMonth += dir;
-  if(calMonth > 11){ calMonth = 0; calYear++; }
-  if(calMonth < 0) { calMonth = 11; calYear--; }
-  renderCalendar();
-}
-
-function scrollToEvent(eventId){
-  // Make sure the card is visible (expand if needed)
-  const idx = EVENTS.findIndex(e => e.id === eventId);
-  if(idx >= visibleCount){
-    visibleCount = idx + 1;
-    // Re-render to show the card
-    renderSurvey();
-    renderCalendar();
-  }
-  setTimeout(() => {
-    const card = document.getElementById('card-' + eventId);
-    if(card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 100);
-}
-
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-async function init(){
-  // Always show login first
-  renderLogin();
-}
-
-// Called after user enters name - fetch events then render survey
-async function loadAndRender(){
-  document.getElementById('app').innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 56px);gap:14px">
-      <div style="width:32px;height:32px;border:3px solid var(--green-100);border-top-color:var(--green-500);border-radius:50%;animation:spin 0.7s linear infinite"></div>
-      <p style="font-size:14px;color:var(--gray-400)">Loading events...</p>
     </div>`;
 
-  const fetched = await fetchEventsFromAirtable();
-  if(!fetched || fetched.length === 0){
-    document.getElementById('app').innerHTML = `
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:20px">
-        <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:2rem;max-width:380px;text-align:center;box-shadow:var(--shadow-md)">
+  const fetched=await fetchEventsFromAirtable();
+  if(!fetched||fetched.length===0){
+    document.getElementById('root').innerHTML=`
+      <div class="login-wrap">
+        <div class="login-card" style="text-align:center">
           <div style="font-size:32px;margin-bottom:14px">📋</div>
-          <h2 style="font-size:17px;font-weight:600;margin-bottom:8px">No active events found</h2>
-          <p style="font-size:13px;color:var(--gray-500);line-height:1.6">There are no active events at the moment. Please check back later.</p>
+          <h2 style="font-size:17px">No active events found</h2>
+          <p style="margin-top:8px">There are no active events at the moment. Please check back later.</p>
         </div>
       </div>`;
     return;
   }
 
-  EVENTS = fetched;
-  visibleCount = PAGE_SIZE;
-  document.getElementById('calendarPanel').style.display = 'block';
+  EVENTS=fetched;
+  visibleCount=PAGE_SIZE;
+  document.getElementById('topbarName').textContent=currentUser;
+  const tu=document.getElementById('topbarUser');
+  tu.style.display='flex';
+  // navigate calendar to first event month
+  const firstDate=EVENTS.find(e=>e.date&&e.date!=='TBD');
+  if(firstDate){const d=new Date(firstDate.date);if(!isNaN(d)){calYear=d.getFullYear();calMonth=d.getMonth();}}
   renderSurvey();
 }
 
-init();
+function switchUser(){
+  currentUser='';responses={};visibleCount=PAGE_SIZE;activeFilter=null;
+  renderLogin();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderLogin();
 </script>
 </body>
 </html>
