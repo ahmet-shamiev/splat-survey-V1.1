@@ -189,12 +189,27 @@ input[type="text"]::placeholder{color:var(--gray-400)}
 
 /* ── MOBILE ── */
 @media(max-width:800px){
-  .layout{flex-direction:column;height:auto}
-  .cal-panel{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--gray-200)}
-  .cal-legend{max-height:200px}
-  .survey-inner{padding:16px 14px 80px}
-  .interest-controls{gap:6px}
-  .ictl{min-width:70px;padding:8px 6px;font-size:12px}
+  .cal-panel{display:none!important}
+  .layout{height:auto}
+  .survey-panel{width:100%}
+  .survey-inner{padding:16px 14px 100px}
+  .interest-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ictl{min-height:52px;padding:10px 8px;font-size:13px}
+  .cal-fab{display:flex!important;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green-600);color:var(--white);border:none;border-radius:24px;padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(7,112,60,0.35);z-index:300;align-items:center;gap:8px;white-space:nowrap;transition:background 0.15s}
+  .cal-fab:active{transform:translateX(-50%) scale(0.97)}
+  .cal-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400}
+  .cal-drawer-overlay.open{display:block}
+  .cal-drawer{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-radius:20px 20px 0 0;z-index:500;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s ease}
+  .cal-drawer.open{transform:translateY(0)}
+  .cal-drawer-handle{width:40px;height:4px;background:var(--gray-200);border-radius:2px;margin:12px auto 4px}
+  .cal-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 12px;border-bottom:1px solid var(--gray-100)}
+  .cal-drawer-title{font-size:15px;font-weight:600;color:var(--gray-800)}
+  .cal-drawer-close{background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:4px 8px;line-height:1}
+}
+@media(min-width:801px){
+  .cal-fab{display:none!important}
+  .cal-drawer-overlay{display:none!important}
+  .cal-drawer{display:none!important}
 }
 </style>
 </head>
@@ -398,6 +413,7 @@ function filterByDate(dateStr){
   activeFilter=activeFilter===dateStr?null:dateStr;
   renderCalendar();
   renderEventList();
+  showFab(true);
 }
 
 function clearFilter(){
@@ -733,7 +749,33 @@ async function startSurvey(){
 
 function switchUser(){
   currentUser='';responses={};visibleCount=PAGE_SIZE;activeFilter=null;
+  showFab(false);
   renderLogin();
+}
+
+// ── MOBILE CALENDAR DRAWER ───────────────────────────────────────────────────
+function openCalDrawer(){
+  document.getElementById('calOverlay').classList.add('open');
+  document.getElementById('calDrawer').classList.add('open');
+  document.body.style.overflow='hidden';
+  // Render calendar into drawer
+  const body=document.getElementById('calDrawerBody');
+  if(body){
+    body.innerHTML='<div id="calWrap"></div>';
+    renderCalendar();
+  }
+}
+
+function closeCalDrawer(){
+  document.getElementById('calOverlay').classList.remove('open');
+  document.getElementById('calDrawer').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// Show FAB only when survey is active (not on login)
+function showFab(show){
+  const fab=document.getElementById('calFab');
+  if(fab) fab.style.display=show?'flex':'none';
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
