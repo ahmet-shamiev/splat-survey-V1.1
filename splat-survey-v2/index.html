@@ -197,7 +197,7 @@ input[type="text"]::placeholder{color:var(--gray-400)}
   .survey-inner{padding:16px 14px 100px}
   .interest-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .ictl{min-height:52px;padding:10px 8px;font-size:13px}
-  .cal-fab{display:flex!important;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green-600);color:var(--white);border:none;border-radius:24px;padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(7,112,60,0.35);z-index:300;align-items:center;gap:8px;white-space:nowrap;transition:background 0.15s}
+  .cal-fab{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green-600);color:var(--white);border:none;border-radius:24px;padding:12px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(7,112,60,0.35);z-index:300;align-items:center;gap:8px;white-space:nowrap;transition:background 0.15s}
   .cal-fab:active{transform:translateX(-50%) scale(0.97)}
   .cal-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400}
   .cal-drawer-overlay.open{display:block}
@@ -208,12 +208,8 @@ input[type="text"]::placeholder{color:var(--gray-400)}
   .cal-drawer-title{font-size:15px;font-weight:600;color:var(--gray-800)}
   .cal-drawer-close{background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:4px 8px;line-height:1}
   .month-header{position:sticky;top:0;background:var(--gray-50);z-index:10;padding:10px 0 6px;font-size:13px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--gray-200);margin-bottom:8px}
-  .cal-fab{display:flex}
-  .cal-fab.fab-hidden{display:none!important}
 }
 @media(min-width:801px){
-  .cal-fab{display:none!important}
-  .cal-fab{display:none!important}
   .cal-drawer-overlay{display:none!important}
   .cal-drawer{display:none!important}
 }
@@ -782,9 +778,16 @@ function closeCalDrawer(){
 function showFab(show){
   const fab=document.getElementById('calFab');
   if(!fab) return;
-  if(show) fab.classList.remove('fab-hidden');
-  else fab.classList.add('fab-hidden');
+  // Only show on mobile
+  const isMobile=window.innerWidth<=800;
+  fab.style.display=(show&&isMobile)?'flex':'none';
 }
+window.addEventListener('resize',()=>{
+  const fab=document.getElementById('calFab');
+  if(!fab) return;
+  const isMobile=window.innerWidth<=800;
+  if(!isMobile) fab.style.display='none';
+});
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 renderLogin();
