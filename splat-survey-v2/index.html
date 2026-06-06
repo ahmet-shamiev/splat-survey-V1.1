@@ -136,8 +136,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--gray
 .tag-answered{font-size:10px;padding:2px 7px;border-radius:20px;margin-left:auto;font-weight:600}
 .card-name{font-size:14px;font-weight:600;color:var(--gray-800);line-height:1.4;margin-bottom:4px;transition:color 0.15s}
 .card-location{font-size:12px;color:var(--gray-400);display:flex;align-items:center;gap:4px}
-.expand-hint{font-size:11px;color:var(--gray-400);margin-top:6px;display:flex;align-items:center;gap:4px}
-.expand-arrow{transition:transform 0.2s;display:inline-block}
+.expand-hint{display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--gray-500);cursor:pointer;transition:all 0.15s;user-select:none}
+.expand-hint:hover{background:var(--green-50);border-color:var(--green-200);color:var(--green-700)}
+.event-card.expanded .expand-hint{background:var(--green-50);border-color:var(--green-200);color:var(--green-600)}
+.expand-arrow{transition:transform 0.2s;display:inline-block;font-size:10px}
 .event-card.expanded .expand-arrow{transform:rotate(180deg)}
 
 /* Card details (collapsible) */
@@ -205,8 +207,12 @@ input[type="text"]::placeholder{color:var(--gray-400)}
   .cal-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 12px;border-bottom:1px solid var(--gray-100)}
   .cal-drawer-title{font-size:15px;font-weight:600;color:var(--gray-800)}
   .cal-drawer-close{background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:4px 8px;line-height:1}
+  .month-header{position:sticky;top:0;background:var(--gray-50);z-index:10;padding:10px 0 6px;font-size:13px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--gray-200);margin-bottom:8px}
+  .cal-fab{display:flex}
+  .cal-fab.fab-hidden{display:none!important}
 }
 @media(min-width:801px){
+  .cal-fab{display:none!important}
   .cal-fab{display:none!important}
   .cal-drawer-overlay{display:none!important}
   .cal-drawer{display:none!important}
@@ -775,7 +781,9 @@ function closeCalDrawer(){
 // Show FAB only when survey is active (not on login)
 function showFab(show){
   const fab=document.getElementById('calFab');
-  if(fab) fab.style.display=show?'flex':'none';
+  if(!fab) return;
+  if(show) fab.classList.remove('fab-hidden');
+  else fab.classList.add('fab-hidden');
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
