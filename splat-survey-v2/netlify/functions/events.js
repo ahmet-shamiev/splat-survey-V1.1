@@ -24,7 +24,7 @@ exports.handler = async function(event, context) {
   }
 
   const FIELD_MAP = {
-    name:        'Name',
+    name:        'Junction Record',
     description: 'Summarized Text',
     date:        'Formatted Date',
     category:    'Category',
