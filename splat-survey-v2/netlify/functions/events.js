@@ -29,6 +29,7 @@ exports.handler = async function(event, context) {
     date:        'Formatted Date',
     category:    'Category',
     status:      'Status',
+    notes:       'Notes',
   };
 
   try {
@@ -64,6 +65,7 @@ exports.handler = async function(event, context) {
           date:    unwrap(f[FIELD_MAP.date]) || 'TBD',
           section: unwrap(f[FIELD_MAP.category]),
           desc:    unwrap(f[FIELD_MAP.description]),
+          notes:   unwrap(f[FIELD_MAP.notes]),
         });
       });
 
