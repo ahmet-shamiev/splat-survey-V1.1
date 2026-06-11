@@ -454,9 +454,6 @@ function filterByDate(dateStr){
   activeFilter=activeFilter===dateStr?null:dateStr;
   renderCalendar();
   renderEventList();
-  // Show Airtable calendar on mobile
-  const mobileCal=document.getElementById('mobileCal');
-  if(mobileCal) mobileCal.style.display=window.innerWidth<=800?'block':'none';
 }
 
 function clearFilter(){
@@ -525,6 +522,11 @@ function renderSurvey(){
 
   renderCalendar();
   renderEventList();
+  // Show Airtable calendar on mobile
+  setTimeout(()=>{
+    const mobileCal=document.getElementById('mobileCal');
+    if(mobileCal) mobileCal.style.display=window.innerWidth<=800?'block':'none';
+  },50);
 }
 
 function renderEventList(){
