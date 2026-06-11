@@ -268,27 +268,11 @@ function onNotesInput(eventId){
   noteTimers[eventId]=setTimeout(()=>{
     if(savingEl) savingEl.classList.remove('show');
     if(savedEl){savedEl.style.display='inline';setTimeout(()=>{savedEl.style.display='none';},2000);}
-    // Push to Airtable via notes webhook
-    pushNoteToAirtable(eventId, textarea.value);
+    // Notes saved locally - sent to Airtable on Submit
   }, 1500);
 }
 
-async function pushNoteToAirtable(eventId, noteText){
-  const ev=EVENTS.find(e=>e.id===eventId);
-  if(!ev) return;
-  try{
-    await fetch('/.netlify/functions/save-note',{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({
-        recordId: eventId,
-        note: noteText,
-        user: currentUser,
-        email: currentEmail,
-      })
-    });
-  }catch(e){ console.error('Note save failed',e); }
-}
+
 
 const LEVELS = [
   {label:'Not interested', icon:'✕', val:0},
@@ -458,6 +442,19 @@ function renderCalendar(){
     </div>`;
 }
 
+function renderMobileCal(){
+  const wrap=document.getElementById('mobileCalWrap');
+  if(!wrap) return;
+  if(window.innerWidth>800){ wrap.closest('.mobile-cal-inline').style.display='none'; return; }
+  wrap.closest('.mobile-cal-inline').style.display='block';
+  // Temporarily use mobileCalWrap as calWrap for renderCalendar
+  const mainWrap=document.getElementById('calWrap');
+  wrap.id='calWrap';
+  renderCalendar();
+  wrap.id='mobileCalWrap';
+  if(mainWrap) mainWrap.id='calWrap';
+}
+
 function changeMonth(dir){
   calMonth+=dir;
   if(calMonth>11){calMonth=0;calYear++;}
@@ -470,18 +467,7 @@ function filterByDate(dateStr){
   activeFilter=activeFilter===dateStr?null:dateStr;
   renderCalendar();
   renderEventList();
-  showFab(true);
-  // Show inline calendar on mobile
-  const mobileCal=document.getElementById('mobileCal');
-  const mobileCalWrap=document.getElementById('mobileCalWrap');
-  if(mobileCal && window.innerWidth<=800){
-    mobileCal.style.display='block';
-    if(mobileCalWrap){
-      mobileCalWrap.id='calWrap';
-      renderCalendar();
-      mobileCalWrap.id='mobileCalWrap';
-    }
-  }
+  renderMobileCal();
 }
 
 function clearFilter(){
@@ -686,6 +672,7 @@ function pick(eventId,val,e){
   }
   updateStats();
   renderCalendar(); // refresh dots
+  renderMobileCal();
   // Reset submit button if user changes answer after submitting
   const submitBtn=document.getElementById('submitBtn');
   const submitLabel=document.getElementById('submitLabel');
