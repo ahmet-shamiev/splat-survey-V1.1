@@ -781,7 +781,24 @@ async function submitSurvey(){
         successBox=div;
       }
     }
-    if(successBox) successBox.innerHTML=`<h3>Thank you!</h3><p>${events.length} event${events.length!==1?'s':''} answered. Your responses have been recorded.<br>You can come back anytime to update your choices.</p>`;
+    if(successBox){
+      let countdown=3;
+      const updateBox=()=>{
+        successBox.innerHTML=`<h3>Thank you, ${esc(currentUser)}!</h3>
+          <p>${events.length} event${events.length!==1?'s':''} answered. Your responses have been recorded.</p>
+          <p style="margin-top:10px;font-size:13px;color:var(--green-600)">You will be logged out in <strong style="font-size:16px">${countdown}</strong> second${countdown!==1?'s':''}...</p>`;
+      };
+      updateBox();
+      const timer=setInterval(()=>{
+        countdown--;
+        if(countdown<=0){
+          clearInterval(timer);
+          switchUser();
+        } else {
+          updateBox();
+        }
+      },1000);
+    }
   }catch(err){
     spinner.style.display='none';
     label.textContent='Submit responses';
