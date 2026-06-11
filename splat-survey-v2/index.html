@@ -814,8 +814,65 @@ async function startSurvey(){
   const fullName=document.getElementById('fullNameInput')?.value.trim();
   const email=document.getElementById('emailInput')?.value.trim();
   const err=document.getElementById('loginError');
-  if(!fullName){err.textContent='Please enter your full name.';err.style.display='block';document.getElementById('fullNameInput').focus();return;}
-  if(!email){err.textContent='Please enter your email address.';err.style.display='block';document.getElementById('emailInput').focus();return;}
+
+  // Validate Full Name
+  if(!fullName){
+    err.textContent='Please enter your full name.';
+    err.style.display='block';
+    document.getElementById('fullNameInput').focus();
+    return;
+  }
+  // Must contain at least two words (first + last name)
+  if(fullName.split(/\s+/).filter(w=>w.length>0).length < 2){
+    err.textContent='Please enter your full name (first and last name).';
+    err.style.display='block';
+    document.getElementById('fullNameInput').focus();
+    return;
+  }
+  // Must not look like a phone number
+  if(/^[\d\s\+\-\(\)\.]+$/.test(fullName)){
+    err.textContent='Full name should not be a phone number. Please enter your real name.';
+    err.style.display='block';
+    document.getElementById('fullNameInput').focus();
+    return;
+  }
+  // Must not look like an email
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fullName)){
+    err.textContent='Please enter your name in the Full Name field, not an email address.';
+    err.style.display='block';
+    document.getElementById('fullNameInput').focus();
+    return;
+  }
+  // Must not contain digits mixed with text (e.g. "John123")
+  if(/\d/.test(fullName)){
+    err.textContent='Full name should not contain numbers. Please enter your real name.';
+    err.style.display='block';
+    document.getElementById('fullNameInput').focus();
+    return;
+  }
+
+  // Validate Email
+  if(!email){
+    err.textContent='Please enter your email address.';
+    err.style.display='block';
+    document.getElementById('emailInput').focus();
+    return;
+  }
+  // Must be a valid email format
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+    err.textContent='Please enter a valid email address (e.g. sarah@example.com).';
+    err.style.display='block';
+    document.getElementById('emailInput').focus();
+    return;
+  }
+  // Must not look like a name typed in email field
+  if(!/[@]/.test(email)){
+    err.textContent='Email address must contain @. Please enter a valid email.';
+    err.style.display='block';
+    document.getElementById('emailInput').focus();
+    return;
+  }
+
   err.style.display='none';
   currentUser=fullName;
   currentEmail=email;
