@@ -756,7 +756,7 @@ async function submitSurvey(){
   const events=[];
   EVENTS.forEach(e=>{
     if(responses[e.id]!==undefined){
-      events.push({name:e.name,date:e.date||'TBD',interest:LEVELS[responses[e.id]].label});
+      events.push({name:e.name,date:e.date||'TBD',interest:LEVELS[responses[e.id]].label,user_notes:notes[e.id]||''});
     }
   });
   const payload={user:currentUser,email:currentEmail,submitted_at:new Date().toISOString(),events};
