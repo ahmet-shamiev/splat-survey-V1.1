@@ -351,6 +351,11 @@ let calMonth=new Date().getMonth();
 function renderCalendar(){
   const wrap=document.getElementById('calWrap');
   if(!wrap) return;
+  renderCalendarHTML(wrap, false);
+}
+
+function renderCalendarHTML(wrap, isMobile){
+  if(!wrap) return;
 
   const today=new Date();
   const firstDay=new Date(calYear,calMonth,1).getDay();
@@ -386,7 +391,7 @@ function renderCalendar(){
     if(hasEv)   cls+=' has-event';
     if(isActive) cls+=' active-filter';
     const dots=evs.map(e=>`<span class="cal-dot ${dotClass(e.id)}"></span>`).join('');
-    const onclick=hasEv?`onclick="filterByDate('${dateStr}')"` :'';
+    const onclick=hasEv?(isMobile?`onclick="scrollToDate('${dateStr}')"` :`onclick="filterByDate('${dateStr}')"`)  :'';
     const title=hasEv?`title="${evs.length} event${evs.length>1?'s':''}"` :'';
     cells+=`<div class="${cls}" ${onclick} ${title}>${d}${dots?`<div class="cal-dots">${dots}</div>`:''}</div>`;
   }
@@ -443,16 +448,9 @@ function renderCalendar(){
 }
 
 function renderCalendarInto(targetId){
-  // Swap calWrap to target, render, swap back
-  const mainWrap=document.getElementById('calWrap');
   const target=document.getElementById(targetId);
   if(!target) return;
-  const prevId=mainWrap?mainWrap.id:null;
-  if(mainWrap) mainWrap.id='_calWrap_hidden';
-  target.id='calWrap';
-  renderCalendar();
-  target.id=targetId;
-  if(mainWrap) mainWrap.id=prevId;
+  renderCalendarHTML(target, true); // true = mobile mode
 }
 
 // Also refresh mobile cal when responses change
@@ -466,6 +464,30 @@ function changeMonth(dir){
   if(calMonth<0){calMonth=11;calYear--;}
   activeFilter=null;
   renderCalendar();
+  refreshMobileCal();
+}
+
+function scrollToDate(dateStr){
+  // Find first event on this date and scroll to it without filtering
+  const ev=EVENTS.find(e=>{
+    if(!e.date||e.date==='TBD') return false;
+    return new Date(e.date).toDateString()===dateStr;
+  });
+  if(!ev) return;
+  // Ensure card is visible
+  const idx=EVENTS.findIndex(e=>e.id===ev.id);
+  if(idx>=visibleCount){
+    visibleCount=idx+1;
+    renderEventList();
+  }
+  setTimeout(()=>{
+    const card=document.getElementById('card-'+ev.id);
+    if(card){
+      card.scrollIntoView({behavior:'smooth',block:'center'});
+      card.classList.add('highlighted');
+      setTimeout(()=>card.classList.remove('highlighted'),2000);
+    }
+  },100);
 }
 
 function filterByDate(dateStr){
