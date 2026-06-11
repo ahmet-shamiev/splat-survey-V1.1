@@ -782,7 +782,7 @@ async function submitSurvey(){
       }
     }
     if(successBox){
-      let countdown=3;
+      let countdown=5;
       const updateBox=()=>{
         successBox.innerHTML=`<h3>Thank you, ${esc(currentUser)}!</h3>
           <p>${events.length} event${events.length!==1?'s':''} answered. Your responses have been recorded.</p>
