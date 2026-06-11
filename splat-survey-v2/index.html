@@ -442,19 +442,6 @@ function renderCalendar(){
     </div>`;
 }
 
-function renderMobileCal(){
-  const wrap=document.getElementById('mobileCalWrap');
-  if(!wrap) return;
-  if(window.innerWidth>800){ wrap.closest('.mobile-cal-inline').style.display='none'; return; }
-  wrap.closest('.mobile-cal-inline').style.display='block';
-  // Temporarily use mobileCalWrap as calWrap for renderCalendar
-  const mainWrap=document.getElementById('calWrap');
-  wrap.id='calWrap';
-  renderCalendar();
-  wrap.id='mobileCalWrap';
-  if(mainWrap) mainWrap.id='calWrap';
-}
-
 function changeMonth(dir){
   calMonth+=dir;
   if(calMonth>11){calMonth=0;calYear++;}
@@ -467,7 +454,9 @@ function filterByDate(dateStr){
   activeFilter=activeFilter===dateStr?null:dateStr;
   renderCalendar();
   renderEventList();
-  renderMobileCal();
+  // Show Airtable calendar on mobile
+  const mobileCal=document.getElementById('mobileCal');
+  if(mobileCal) mobileCal.style.display=window.innerWidth<=800?'block':'none';
 }
 
 function clearFilter(){
@@ -520,7 +509,7 @@ function renderSurvey(){
               ${LEVELS.map((l,i)=>`<div class="sum-item"><span class="sum-dot" style="background:${LEVEL_COLORS[i]}"></span><span id="sc-${i}">${s.counts[i]}</span> ${l.label}</div>`).join('')}
             </div>
           </div>
-          <div class="mobile-cal-inline" id="mobileCal" style="display:none"><div id="mobileCalWrap"></div></div>
+          <div class="mobile-cal-inline" id="mobileCal" style="display:none"><iframe class="airtable-embed" src="https://airtable.com/embed/appJQfkR5k7lLG0hY/shr1pe6qUUqQ5zVuE" frameborder="0" onmousewheel="" width="100%" height="500" style="background:transparent;border:none;display:block"></iframe></div>
           <div id="eventList"></div>
           <div class="footer" id="footer">
             <div id="showMoreSlot"></div>
@@ -672,7 +661,6 @@ function pick(eventId,val,e){
   }
   updateStats();
   renderCalendar(); // refresh dots
-  renderMobileCal();
   // Reset submit button if user changes answer after submitting
   const submitBtn=document.getElementById('submitBtn');
   const submitLabel=document.getElementById('submitLabel');
