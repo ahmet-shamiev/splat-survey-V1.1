@@ -160,6 +160,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--gray
 .ictl.active-2{background:var(--green-50);border-color:var(--green-400);color:var(--green-700);font-weight:600}
 .ictl.active-3{background:var(--green-700);border-color:var(--green-700);color:var(--white);font-weight:600}
 
+/* ── NOTES ── */
+.notes-section{padding:8px 16px 14px;border-top:1px solid var(--gray-100)}
+.notes-label{font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.notes-input{width:100%;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-md);background:var(--white);color:var(--gray-800);outline:none;transition:border-color 0.15s;resize:none;min-height:64px;line-height:1.5}
+.notes-input:focus{border-color:var(--green-400)}
+.notes-input::placeholder{color:var(--gray-300)}
+.notes-saving{font-size:11px;color:var(--gray-400);display:none;align-items:center;gap:4px}
+.notes-saving.show{display:flex}
+.notes-saved{font-size:11px;color:var(--green-500)}
+
 /* ── FOOTER ── */
 .footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:12px;flex-wrap:wrap}
 .btn-show-more{background:var(--white);border:1.5px solid var(--green-400);border-radius:var(--radius-md);padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--green-600);cursor:pointer;transition:background 0.15s}
@@ -198,8 +208,8 @@ input[type="text"]::placeholder{color:var(--gray-400)}
   .survey-inner{padding:16px 14px 100px}
   .interest-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .ictl{min-height:52px;padding:10px 8px;font-size:13px}
-  .cal-fab{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--green-600);color:var(--white);border:none;border-radius:12px 0 0 12px;padding:14px 10px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;box-shadow:-3px 0 16px rgba(7,112,60,0.3);z-index:9999;flex-direction:column;align-items:center;gap:6px;transition:background 0.15s;display:none}
-  .cal-fab:active{background:var(--green-700)}
+  .mobile-cal-inline{display:block;margin-bottom:16px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+  .cal-fab{display:none!important}
   .cal-drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:400}
   .cal-drawer-overlay.open{display:block}
   .cal-drawer{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-radius:20px 20px 0 0;z-index:500;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.3s ease}
@@ -237,6 +247,49 @@ const ZAPIER_WEBHOOK_URL  = 'https://hooks.zapier.com/hooks/catch/11843729/4ysxr
 const ZAPIER_WEBHOOK_URL2 = 'https://hooks.zapier.com/hooks/catch/11843729/4bg9znr/';
 const PAGE_SIZE = 5;
 
+let notes = {};
+let noteTimers = {};
+
+function lsNotesKey(u){ return 'splat_notes__'+u.trim().toLowerCase().replace(/\s+/g,'_'); }
+function saveNotes(){ try{localStorage.setItem(lsNotesKey(currentUser),JSON.stringify(notes));}catch(e){} }
+function loadNotes(){ try{const v=localStorage.getItem(lsNotesKey(currentUser));notes=v?JSON.parse(v):{}}catch(e){notes={};} }
+
+function onNotesInput(eventId){
+  const textarea=document.getElementById('notes-'+eventId);
+  if(!textarea) return;
+  notes[eventId]=textarea.value;
+  saveNotes();
+  // Show saving indicator with debounce
+  const savingEl=document.getElementById('notes-saving-'+eventId);
+  const savedEl=document.getElementById('notes-saved-'+eventId);
+  if(savingEl){savingEl.classList.add('show');}
+  if(savedEl){savedEl.style.display='none';}
+  clearTimeout(noteTimers[eventId]);
+  noteTimers[eventId]=setTimeout(()=>{
+    if(savingEl) savingEl.classList.remove('show');
+    if(savedEl){savedEl.style.display='inline';setTimeout(()=>{savedEl.style.display='none';},2000);}
+    // Push to Airtable via notes webhook
+    pushNoteToAirtable(eventId, textarea.value);
+  }, 1500);
+}
+
+async function pushNoteToAirtable(eventId, noteText){
+  const ev=EVENTS.find(e=>e.id===eventId);
+  if(!ev) return;
+  try{
+    await fetch('/.netlify/functions/save-note',{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({
+        recordId: eventId,
+        note: noteText,
+        user: currentUser,
+        email: currentEmail,
+      })
+    });
+  }catch(e){ console.error('Note save failed',e); }
+}
+
 const LEVELS = [
   {label:'Not interested', icon:'✕', val:0},
   {label:'Maybe',          icon:'〜', val:1},
@@ -247,6 +300,7 @@ const LEVEL_COLORS = ['#ef4444','#f59e0b','#22c072','#07703c'];
 const LEVEL_BG     = ['#fef2f2','#fffbeb','#e8faf2','#e8faf2'];
 
 let currentUser  = '';
+let currentEmail = '';
 let responses    = {};
 let EVENTS       = [];
 let visibleCount = PAGE_SIZE;
@@ -417,6 +471,17 @@ function filterByDate(dateStr){
   renderCalendar();
   renderEventList();
   showFab(true);
+  // Show inline calendar on mobile
+  const mobileCal=document.getElementById('mobileCal');
+  const mobileCalWrap=document.getElementById('mobileCalWrap');
+  if(mobileCal && window.innerWidth<=800){
+    mobileCal.style.display='block';
+    if(mobileCalWrap){
+      mobileCalWrap.id='calWrap';
+      renderCalendar();
+      mobileCalWrap.id='mobileCalWrap';
+    }
+  }
 }
 
 function clearFilter(){
@@ -469,6 +534,7 @@ function renderSurvey(){
               ${LEVELS.map((l,i)=>`<div class="sum-item"><span class="sum-dot" style="background:${LEVEL_COLORS[i]}"></span><span id="sc-${i}">${s.counts[i]}</span> ${l.label}</div>`).join('')}
             </div>
           </div>
+          <div class="mobile-cal-inline" id="mobileCal" style="display:none"><div id="mobileCalWrap"></div></div>
           <div id="eventList"></div>
           <div class="footer" id="footer">
             <div id="showMoreSlot"></div>
@@ -556,6 +622,14 @@ function cardHTML(ev){
     <div class="interest-section">
       <div class="interest-label">Your interest level</div>
       <div class="interest-controls" id="controls-${ev.id}">${btns}</div>
+    </div>
+    <div class="notes-section">
+      <div class="notes-label">
+        📝 Notes
+        <span class="notes-saving" id="notes-saving-${ev.id}">saving...</span>
+        <span class="notes-saved" id="notes-saved-${ev.id}" style="display:none">✓ Saved</span>
+      </div>
+      <textarea class="notes-input" id="notes-${ev.id}" placeholder="Add your notes here..." oninput="onNotesInput('${ev.id}')">${esc(notes[ev.id]||'')}</textarea>
     </div>
   </div>`;
 }
@@ -661,7 +735,7 @@ async function submitSurvey(){
       events.push({name:e.name,date:e.date||'TBD',interest:LEVELS[responses[e.id]].label});
     }
   });
-  const payload={user:currentUser,submitted_at:new Date().toISOString(),events};
+  const payload={user:currentUser,email:currentEmail,submitted_at:new Date().toISOString(),events};
 
   try{
     await Promise.all([
@@ -700,9 +774,11 @@ function renderLogin(){
       <div class="login-card">
         <div class="login-icon">🎨</div>
         <h2>Event interest survey</h2>
-        <p>Enter your name or email to access your personal survey. Your answers are private and saved automatically.</p>
-        <label class="field-label">Your name or email</label>
-        <input type="text" id="userInput" placeholder="e.g. Sarah or sarah@example.com" onkeydown="if(event.key==='Enter')startSurvey()" />
+        <p>Enter your details to access your personal survey. Your answers are private and saved automatically.</p>
+        <label class="field-label">Full Name</label>
+        <input type="text" id="fullNameInput" placeholder="e.g. Sarah Johnson" onkeydown="if(event.key==='Enter')document.getElementById('emailInput').focus()" />
+        <label class="field-label">Email Address</label>
+        <input type="text" id="emailInput" placeholder="e.g. sarah@example.com" onkeydown="if(event.key==='Enter')startSurvey()" />
         <button class="btn-green-full" onclick="startSurvey()">Open my survey</button>
         <p class="error-msg" id="loginError"></p>
       </div>
@@ -711,12 +787,16 @@ function renderLogin(){
 }
 
 async function startSurvey(){
-  const val=document.getElementById('userInput')?.value.trim();
+  const fullName=document.getElementById('fullNameInput')?.value.trim();
+  const email=document.getElementById('emailInput')?.value.trim();
   const err=document.getElementById('loginError');
-  if(!val){err.textContent='Please enter your name or email.';err.style.display='block';return;}
+  if(!fullName){err.textContent='Please enter your full name.';err.style.display='block';document.getElementById('fullNameInput').focus();return;}
+  if(!email){err.textContent='Please enter your email address.';err.style.display='block';document.getElementById('emailInput').focus();return;}
   err.style.display='none';
-  currentUser=val;
+  currentUser=fullName;
+  currentEmail=email;
   loadLocal();
+  loadNotes();
 
   document.getElementById('root').innerHTML=`
     <div class="login-wrap">
@@ -740,6 +820,8 @@ async function startSurvey(){
   }
 
   EVENTS=fetched;
+  // Pre-populate notes from Airtable
+  fetched.forEach(e=>{ if(e.notes && !notes[e.id]) notes[e.id]=e.notes; });
   visibleCount=PAGE_SIZE;
   document.getElementById('topbarName').textContent=currentUser;
   const tu=document.getElementById('topbarUser');
@@ -751,7 +833,7 @@ async function startSurvey(){
 }
 
 function switchUser(){
-  currentUser='';responses={};visibleCount=PAGE_SIZE;activeFilter=null;
+  currentUser='';currentEmail='';responses={};notes={};visibleCount=PAGE_SIZE;activeFilter=null;
   showFab(false);
   renderLogin();
 }
