@@ -134,6 +134,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--gray
 .tag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
 .tag-date{background:var(--green-50);color:var(--green-700);border:1px solid var(--green-100)}
 .tag-section{background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200)}
+.tag-time{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;display:inline-flex;align-items:center;gap:4px}
 .tag-answered{font-size:10px;padding:2px 7px;border-radius:20px;margin-left:auto;font-weight:600}
 .card-name{font-size:14px;font-weight:600;color:var(--gray-800);line-height:1.4;margin-bottom:4px;transition:color 0.15s}
 .card-location{font-size:12px;color:var(--gray-400);display:flex;align-items:center;gap:4px}
@@ -630,6 +631,7 @@ function cardHTML(ev){
     <div class="card-summary" onclick="toggleCard('${ev.id}')" role="button" aria-expanded="false" id="summary-${ev.id}">
       <div class="card-tags">
         <span class="tag tag-date">${ev.date}</span>
+        ${ev.time?`<span class="tag tag-time">🕐 ${esc(ev.time)}</span>`:''}
         ${ev.section?`<span class="tag tag-section">${esc(ev.section)}</span>`:''}
         ${answered?`<span class="tag-answered" style="background:${answerBg};color:${answerColor};border:1px solid ${answerColor}40">${answerLabel}</span>`:''}
       </div>
