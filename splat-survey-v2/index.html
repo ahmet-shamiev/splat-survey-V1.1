@@ -171,6 +171,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--gray
 .notes-saving.show{display:flex}
 .notes-saved{font-size:11px;color:var(--green-500)}
 
+.admin-notes-section{padding:4px 16px 12px;border-top:1px solid var(--gray-100)}
+.admin-notes-label{font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.admin-notes-text{font-size:13px;color:var(--gray-500);line-height:1.6;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-md);padding:8px 12px;min-height:40px;white-space:pre-line}
+.admin-notes-empty{font-size:12px;color:var(--gray-300);font-style:italic}
+
 /* ── FOOTER ── */
 .footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:12px;flex-wrap:wrap}
 .btn-show-more{background:var(--white);border:1.5px solid var(--green-400);border-radius:var(--radius-md);padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--green-600);cursor:pointer;transition:background 0.15s}
@@ -643,6 +648,10 @@ function cardHTML(ev){
     </div>
     <div class="card-details" id="details-${ev.id}">
       ${ev.desc?`<div class="card-desc">${esc(ev.desc).replace(/\n/g,'<br>')}</div>`:''}
+      ${ev.adminNotes!==undefined?`<div class="admin-notes-section">
+        <div class="admin-notes-label">🗒 Admin Notes</div>
+        <div class="admin-notes-text">${ev.adminNotes?esc(ev.adminNotes).replace(/\n/g,'<br>'):'<span class="admin-notes-empty">No admin notes</span>'}</div>
+      </div>`:''}
     </div>
     <div class="interest-section">
       <div class="interest-label">Your interest level</div>
@@ -650,7 +659,7 @@ function cardHTML(ev){
     </div>
     <div class="notes-section">
       <div class="notes-label">
-        📝 Notes
+        📝 Educator Notes
         <span class="notes-saving" id="notes-saving-${ev.id}">saving...</span>
         <span class="notes-saved" id="notes-saved-${ev.id}" style="display:none">✓ Saved</span>
       </div>
@@ -920,7 +929,13 @@ async function startSurvey(){
     return;
   }
 
-  EVENTS=fetched;
+  // Filter: only events from yesterday onwards
+  const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1); yesterday.setHours(0,0,0,0);
+  EVENTS=fetched.filter(e=>{
+    if(!e.date||e.date==='TBD') return true;
+    const d=new Date(e.date);
+    return isNaN(d)||d>=yesterday;
+  });
   // Pre-populate notes from Airtable
   fetched.forEach(e=>{ if(e.notes && !notes[e.id]) notes[e.id]=e.notes; });
   visibleCount=PAGE_SIZE;
@@ -928,8 +943,9 @@ async function startSurvey(){
   const tu=document.getElementById('topbarUser');
   tu.style.display='flex';
   // navigate calendar to first event month
-  const firstDate=EVENTS.find(e=>e.date&&e.date!=='TBD');
-  if(firstDate){const d=new Date(firstDate.date);if(!isNaN(d)){calYear=d.getFullYear();calMonth=d.getMonth();}}
+  // Calendar always shows current month
+  calYear=new Date().getFullYear();
+  calMonth=new Date().getMonth();
   renderSurvey();
 }
 
