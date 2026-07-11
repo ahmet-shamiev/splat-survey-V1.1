@@ -294,6 +294,7 @@ let currentEmail = '';
 let responses    = {};
 let EVENTS       = [];
 let visibleCount = PAGE_SIZE;
+let visibleUpToMonth = null; // 'YYYY-MM' format
 let activeFilter = null; // date string filter
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
@@ -581,6 +582,13 @@ function renderSurvey(){
   },50);
 }
 
+function getMonthKey(dateStr){
+  if(!dateStr||dateStr==='TBD') return 'TBD';
+  const d=new Date(dateStr);
+  if(isNaN(d)) return 'TBD';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+
 function renderEventList(){
   const listEl=document.getElementById('eventList');
   const slotEl=document.getElementById('showMoreSlot');
@@ -595,10 +603,32 @@ function renderEventList(){
     });
   }
 
-  const visible=eventsToShow.slice(0,visibleCount);
-  const remaining=eventsToShow.length-visibleCount;
-  const groups=groupByMonth(visible);
+  // Month-based visibility: show current month by default, expand on "Next Month"
+  let visibleEvents=eventsToShow;
+  let nextMonthKey=null;
 
+  if(!activeFilter){
+    const now=new Date();
+    const currentMonthKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    // Find the cutoff month (current month or visibleUpToMonth if expanded)
+    const cutoffMonth=visibleUpToMonth||currentMonthKey;
+
+    visibleEvents=eventsToShow.filter(e=>getMonthKey(e.date)<=cutoffMonth);
+
+    // Find next month beyond cutoff
+    const remaining=eventsToShow.filter(e=>getMonthKey(e.date)>cutoffMonth);
+    if(remaining.length>0){
+      // Get the next month key
+      const nextKeys=[...new Set(remaining.map(e=>getMonthKey(e.date)))].sort();
+      nextMonthKey=nextKeys[0];
+      // Label it as a month name
+      const [y,m]=nextMonthKey.split('-');
+      const label=new Date(parseInt(y),parseInt(m)-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+      nextMonthKey={key:nextKeys[0], label, count:remaining.filter(e=>getMonthKey(e.date)===nextKeys[0]).length};
+    }
+  }
+
+  const groups=groupByMonth(visibleEvents);
   let html='';
   Object.entries(groups).forEach(([month,evs])=>{
     html+=`<div class="month-group"><div class="month-header">${month}</div>`;
@@ -610,9 +640,13 @@ function renderEventList(){
   listEl.innerHTML=html;
 
   if(slotEl){
-    slotEl.innerHTML=remaining>0
-      ?`<button class="btn-show-more" onclick="showMore()">Show ${Math.min(PAGE_SIZE,remaining)} more <span style="opacity:0.6">(${remaining} left)</span></button>`
-      :`<span class="all-shown">All ${eventsToShow.length} events shown</span>`;
+    if(nextMonthKey){
+      slotEl.innerHTML=`<button class="btn-show-more" onclick="showNextMonth('${nextMonthKey.key}')">Next Month: ${nextMonthKey.label} <span style="opacity:0.6">(${nextMonthKey.count} events)</span></button>`;
+    } else if(!activeFilter){
+      slotEl.innerHTML=`<span class="all-shown">All upcoming events shown</span>`;
+    } else {
+      slotEl.innerHTML=`<span class="all-shown">All ${visibleEvents.length} events shown</span>`;
+    }
   }
 }
 
@@ -676,8 +710,8 @@ function toggleCard(eventId){
   summary.setAttribute('aria-expanded',card.classList.contains('expanded'));
 }
 
-function showMore(){
-  visibleCount+=PAGE_SIZE;
+function showNextMonth(monthKey){
+  visibleUpToMonth=monthKey;
   renderEventList();
 }
 
@@ -950,7 +984,7 @@ async function startSurvey(){
 }
 
 function switchUser(){
-  currentUser='';currentEmail='';responses={};notes={};visibleCount=PAGE_SIZE;activeFilter=null;
+  currentUser='';currentEmail='';responses={};notes={};visibleCount=PAGE_SIZE;visibleUpToMonth=null;activeFilter=null;
   showFab(false);
   renderLogin();
 }
