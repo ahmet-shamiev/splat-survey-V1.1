@@ -32,6 +32,7 @@ exports.handler = async function(event, context) {
     notes:       'Notes',
     time:        'Event Time',
     adminNotes:  'Admin Notes',
+    recordId:    'Record ID',
   };
 
   try {
@@ -70,6 +71,7 @@ exports.handler = async function(event, context) {
           notes:   unwrap(f[FIELD_MAP.notes]),
           time:    unwrap(f[FIELD_MAP.time]),
           adminNotes: unwrap(f[FIELD_MAP.adminNotes]),
+          recordId:   unwrap(f[FIELD_MAP.recordId]),
         });
       });
 
