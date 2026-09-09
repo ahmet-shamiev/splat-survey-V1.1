@@ -1,36 +1,264 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    body {background-color: #f1f5f5}
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 17.0px 'Helvetica Neue'; color: #ffffff; -webkit-text-stroke: #ffffff}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.0px 'Helvetica Neue'; color: #ffffff; color: rgba(255, 255, 255, 0.85); -webkit-text-stroke: rgba(255, 255, 255, 0.85); background-color: #ffffff; background-color: rgba(255, 255, 255, 0.16)}
-    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #ffffff; -webkit-text-stroke: #ffffff; background-color: #41db6d; min-height: 16.0px}
-    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #ffffff; -webkit-text-stroke: #ffffff}
-    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 24.0px 'Helvetica Neue'; color: #172021; -webkit-text-stroke: #172021}
-    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; color: #58696b; -webkit-text-stroke: #58696b}
-    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; font: 14.0px 'Helvetica Neue'; color: #172021; -webkit-text-stroke: #172021; background-color: #ffffff; min-height: 17.0px}
-    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; color: #172021; -webkit-text-stroke: #172021; min-height: 15.0px}
-    span.s1 {font-kerning: none; background-color: #115e73}
-    span.s2 {font-kerning: none}
-    span.s3 {font-kerning: none; background-color: rgba(255, 255, 255, 0.14)}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SplatLab Admin — Events &amp; staffing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f4f7f7; font-family: 'DM Sans', sans-serif; color: #1e2a2c; }
+  a { color: #0d7d94; } a:hover { color: #095a6c; }
+  input, select, button { font-family: 'DM Sans', sans-serif; }
+  :focus-visible { outline: 2px solid #22b8cf; outline-offset: 2px; }
+  .topbar { background:#0d7186; padding:14px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; position:sticky; top:0; z-index:40; }
+  .wrap { max-width:1180px; margin:0 auto; padding:28px 24px 96px; }
+  .card { background:#fff; border:1px solid #e2eaea; border-radius:12px; padding:18px 20px; display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; }
+  .pill { font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; }
+  .btn { cursor:pointer; border:none; background:#0d7d94; color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; }
+  .btn:hover { background:#0a6376; }
+  .btn-ghost { cursor:pointer; border:1.5px solid #dde5e6; background:#fff; color:#4d6265; font-size:14px; font-weight:600; padding:10px 18px; border-radius:10px; }
+  .inp { padding:10px 12px; font-size:14px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; color:#1e2a2c; outline:none; width:100%; }
+  .row { display:grid; grid-template-columns:1fr 110px 130px 40px; gap:12px; align-items:center; }
+  .backdrop { position:fixed; inset:0; background:rgba(16,38,42,0.45); display:flex; align-items:center; justify-content:center; padding:24px; z-index:60; }
+  .modal { background:#fff; border-radius:14px; width:100%; max-width:780px; max-height:88vh; overflow:auto; box-shadow:0 24px 60px rgba(9,40,46,0.28); }
+  .lbl { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#93a3a5; }
+  .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:80; background:#10343b; color:#fff; padding:14px 20px; border-radius:12px; font-size:14px; box-shadow:0 12px 30px rgba(9,40,46,0.3); max-width:90vw; }
+</style>
 </head>
 <body>
-<p class="p1"><span class="s1">SplatLab · Event Survey</span></p>
-<p class="p2"><span class="s2">ADMIN</span></p>
-<p class="p3"><span class="s2"></span><br></p>
-<p class="p4"><span class="s3">Ahmet Shamiev</span></p>
-<p class="p5"><span class="s2">Events &amp; staffing</span></p>
-<p class="p6"><span class="s2">Loading…</span></p>
-<p class="p7"><span class="s2"></span><br></p>
-<p class="p8"><span class="s2"></span><br></p>
-<p class="p8"><span class="s2"></span><br></p>
-<p class="p8"><span class="s2"></span><br></p>
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="font-size:17px;font-weight:700;color:#fff;letter-spacing:-0.01em">SplatLab · Event Survey</div>
+    <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.16);padding:3px 8px;border-radius:4px">Admin</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.14);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:500;color:#fff">
+    <span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span>Ahmet Shamiev
+  </div>
+</div>
+
+<div class="wrap">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:20px">
+    <div>
+      <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em">Events &amp; staffing</div>
+      <div id="summary" style="font-size:13px;color:#6b7c7e;margin-top:4px">Loading…</div>
+    </div>
+    <input id="search" class="inp" style="width:280px" placeholder="Search school, type or date…">
+  </div>
+  <div id="list"></div>
+</div>
+
+<div id="modal-mount"></div>
+<div id="toast-mount"></div>
+
+<script type="module">
+import { EVENTS, STAFF } from './event-data.js';
+
+const state = {
+  events: EVENTS.filter(e => e.status === 'Active').map(e => ({ ...e, assignments: [] })),
+  query: '', modalId: null, rows: []
+};
+
+const el = (h) => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstElementChild; };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+const fmtDate = iso => new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+const monthLabel = iso => new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month:'long', year:'numeric' }).toUpperCase();
+
+let toastTimer;
+function toast(msg) {
+  const m = document.getElementById('toast-mount');
+  m.innerHTML = '<div class="toast">' + esc(msg) + '</div>';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { m.innerHTML = ''; }, 5000);
+}
+
+function render() {
+  const q = state.query.trim().toLowerCase();
+  const list = state.events.filter(e => !q || (e.title + ' ' + e.school + ' ' + e.type + ' ' + e.date).toLowerCase().includes(q));
+
+  document.getElementById('summary').textContent =
+    state.events.length + ' active events · ' + state.events.reduce((t, e) => t + e.assignments.length, 0) + ' staff assignments';
+
+  const groups = [];
+  list.forEach(e => {
+    const label = monthLabel(e.date);
+    let g = groups.find(x => x.label === label);
+    if (!g) { g = { label, events: [] }; groups.push(g); }
+    g.events.push(e);
+  });
+
+  const root = document.getElementById('list');
+  root.innerHTML = groups.length ? '' : '<div style="background:#fff;border:1px dashed #d5e0e1;border-radius:12px;padding:56px 20px;text-align:center;color:#93a3a5;font-size:14px">No events match this search.</div>';
+
+  groups.forEach(g => {
+    const sec = el('<div style="margin-bottom:28px"></div>');
+    sec.appendChild(el('<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#6b7c7e">' + esc(g.label) + '</div><div style="flex:1;height:1px;background:#e2eaea"></div></div>'));
+    const stack = el('<div style="display:flex;flex-direction:column;gap:12px"></div>');
+
+    g.events.forEach(e => {
+      const totalMin = e.assignments.reduce((t, a) => t + a.hours * 60 + a.minutes, 0);
+      const meta = [e.type, e.address, e.subway ? 'Subway ' + e.subway : ''].filter(Boolean).join(' · ') || 'Details TBD';
+      const card = el('<div class="card"></div>');
+      card.appendChild(el(`
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <div style="font-size:13px;font-weight:600;color:#0d7d94;font-family:'DM Mono',monospace">${esc(fmtDate(e.date))}</div>
+            <div class="pill" style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;border-radius:4px;background:#e4f7ec;color:#2f7a52">Active</div>
+          </div>
+          <div style="font-size:16px;font-weight:600;line-height:1.35;letter-spacing:-0.01em">${esc(e.title)}</div>
+          <div style="font-size:13px;color:#6b7c7e;margin-top:4px">${esc(meta)}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <div class="pill" style="color:#0d7186;background:#e4f4f7">${e.slots > 0 ? e.slots + ' of ' + e.limit + ' slots available' : 'User limit reached'}${e.signed ? ' · ' + e.signed + ' signed up' : ''}</div>
+            <div class="pill" style="background:${e.assignments.length ? '#eaf1ff' : '#fdf1e7'};color:${e.assignments.length ? '#2d5099' : '#9a6234'}">${e.assignments.length ? e.assignments.length + ' staff · ' + Math.floor(totalMin/60) + 'h ' + String(totalMin%60).padStart(2,'0') + 'm assigned' : 'No staff assigned'}</div>
+          </div>
+        </div>`));
+
+      const actions = el('<div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;min-width:200px"></div>');
+      const addBtn = el('<button class="btn"><span style="font-size:16px;line-height:1">+</span>' + (e.assignments.length ? 'Manage staff' : 'Add staff') + '</button>');
+      addBtn.onclick = () => openModal(e.id);
+      actions.appendChild(addBtn);
+      card.appendChild(actions);
+
+      if (e.assignments.length) {
+        const block = el('<div style="width:100%;border-top:1px solid #eef3f3;padding-top:14px;display:flex;flex-direction:column;gap:8px"><div class="lbl">Assigned staff</div></div>');
+        e.assignments.forEach((a, i) => {
+          const r = el(`<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#f7fafa;border:1px solid #e9f0f0;border-radius:10px;padding:10px 14px">
+            <div style="font-size:14px;font-weight:600;min-width:150px">${esc(a.name)}</div>
+            <div style="font-size:13px;color:#6b7c7e;flex:1;min-width:180px">${esc(a.email)}</div>
+            <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:#0d7186">${a.hours}h ${String(a.minutes).padStart(2,'0')}m</div>
+            <div style="font-size:12px;color:${a.invited ? '#3f8f5f' : '#9a6234'};font-weight:500">${a.invited ? '✓ Invite sent' : 'Pending'}</div>
+            <button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:#a05252;border-color:#e4dada">Remove</button>
+          </div>`);
+          r.querySelector('button').onclick = () => {
+            e.assignments.splice(i, 1);
+            toast(a.name + ' removed from this event.');
+            render();
+          };
+          block.appendChild(r);
+        });
+        card.appendChild(block);
+      }
+      stack.appendChild(card);
+    });
+    sec.appendChild(stack);
+    root.appendChild(sec);
+  });
+}
+
+function openModal(id) {
+  const ev = state.events.find(e => e.id === id);
+  state.modalId = id;
+  state.rows = ev.assignments.length
+    ? ev.assignments.map(a => ({ staffId: a.staffId, hours: a.hours, minutes: a.minutes }))
+    : [{ staffId: '', hours: 2, minutes: 0 }];
+  renderModal();
+}
+function closeModal() { state.modalId = null; state.rows = []; document.getElementById('modal-mount').innerHTML = ''; }
+
+function updateTotals() {
+  const t = document.getElementById('totals');
+  if (!t) return;
+  const valid = state.rows.filter(r => r.staffId);
+  const mins = valid.reduce((s, r) => s + (+r.hours || 0) * 60 + (+r.minutes || 0), 0);
+  t.textContent = valid.length
+    ? valid.length + ' staff · ' + Math.floor(mins / 60) + 'h ' + String(mins % 60).padStart(2, '0') + 'm total'
+    : 'Nothing assigned yet';
+}
+
+function renderModal() {
+  const ev = state.events.find(e => e.id === state.modalId);
+  if (!ev) return;
+  const chosen = state.rows.map(r => r.staffId).filter(Boolean);
+  const totalMin = state.rows.filter(r => r.staffId).reduce((t, r) => t + (+r.hours || 0) * 60 + (+r.minutes || 0), 0);
+  const n = chosen.length;
+
+  const mount = document.getElementById('modal-mount');
+  mount.innerHTML = `<div class="backdrop"><div class="modal">
+    <div style="padding:22px 26px 16px;border-bottom:1px solid #eef3f3">
+      <div class="lbl" style="letter-spacing:0.1em;margin-bottom:6px">Assign staff</div>
+      <div style="font-size:17px;font-weight:600;line-height:1.35">${esc(ev.title)}</div>
+      <div style="font-size:13px;color:#6b7c7e;margin-top:4px">${esc(fmtDate(ev.date))} · ${esc(ev.type || 'Event')} · ${esc(ev.address || 'Location TBD')}</div>
+    </div>
+    <div style="padding:20px 26px">
+      <div class="row" style="padding-bottom:8px"><div class="lbl">Staff member</div><div class="lbl">Hours</div><div class="lbl">Minutes</div><div></div></div>
+      <div id="rows" style="display:flex;flex-direction:column;gap:10px"></div>
+      <button id="addrow" style="margin-top:14px;cursor:pointer;border:1.5px solid #b7dde5;background:#fff;color:#0d7d94;font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;display:inline-flex;align-items:center;gap:8px"><span style="font-size:16px;line-height:1">+</span>Add another staff member</button>
+      <div style="margin-top:18px;background:#f2fafb;border:1px solid #d9eef2;border-radius:10px;padding:12px 14px;font-size:13px;color:#2c5c66;line-height:1.5">${n ? 'On confirm, a Google Calendar invite for this event is sent to ' + n + ' staff email' + (n === 1 ? '' : 's') + '.' : 'Pick a staff member to enable confirmation. Invites go out automatically on confirm.'}</div>
+    </div>
+    <div style="padding:16px 26px 22px;border-top:1px solid #eef3f3;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div id="totals" style="font-size:13px;color:#6b7c7e">${n ? n + ' staff · ' + Math.floor(totalMin/60) + 'h ' + String(totalMin%60).padStart(2,'0') + 'm total' : 'Nothing assigned yet'}</div>
+      <div style="display:flex;gap:10px">
+        <button id="cancel" class="btn-ghost">Cancel</button>
+        <button id="confirm" class="btn" style="font-size:14px;padding:10px 20px;opacity:${n || ev.assignments.length ? 1 : 0.4}">${n ? 'Confirm &amp; send invites' : 'Confirm'}</button>
+      </div>
+    </div>
+  </div></div>`;
+
+  const rowsEl = mount.querySelector('#rows');
+  state.rows.forEach((r, i) => {
+    const opts = STAFF.map(s => '<option value="' + s.id + '"' + (s.id === r.staffId ? ' selected' : '') + (chosen.includes(s.id) && s.id !== r.staffId ? ' disabled' : '') + '>' + esc(s.name + ' — ' + s.email) + '</option>').join('');
+    const row = el(`<div class="row">
+      <select class="inp"><option value="">Select staff member…</option>${opts}</select>
+      <input class="inp" type="number" min="0" max="24" value="${r.hours}">
+      <select class="inp">${[0,15,30,45].map(m => '<option value="' + m + '"' + (+r.minutes === m ? ' selected' : '') + '>' + String(m).padStart(2,'0') + '</option>').join('')}</select>
+      <button class="btn-ghost" style="width:40px;height:40px;padding:0;font-size:18px;color:#93a3a5">×</button>
+    </div>`);
+    const [staffSel, hoursInp, minSel] = row.querySelectorAll('select, input');
+    staffSel.onchange = ev2 => { r.staffId = ev2.target.value; renderModal(); };
+    hoursInp.oninput = ev2 => { r.hours = ev2.target.value; updateTotals(); };
+    minSel.onchange = ev2 => { r.minutes = +ev2.target.value; renderModal(); };
+    row.querySelector('button').onclick = () => { state.rows.splice(i, 1); renderModal(); };
+    rowsEl.appendChild(row);
+  });
+
+  updateTotals();
+  mount.querySelector('#addrow').onclick = () => { state.rows.push({ staffId: '', hours: 2, minutes: 0 }); renderModal(); };
+  mount.querySelector('#cancel').onclick = closeModal;
+  mount.querySelector('#confirm').onclick = confirmAssign;
+}
+
+async function confirmAssign() {
+  const ev = state.events.find(e => e.id === state.modalId);
+  const assignments = state.rows.filter(r => r.staffId).map(r => {
+    const p = STAFF.find(s => s.id === r.staffId);
+    return { staffId: p.id, name: p.name, email: p.email, hours: +r.hours || 0, minutes: +r.minutes || 0, invited: false };
+  });
+  ev.assignments = assignments;
+  closeModal();
+  render();
+  if (!assignments.length) { toast('All staff removed from this event.'); return; }
+
+  toast('Sending Google Calendar invites…');
+  try {
+    const res = await fetch('/.netlify/functions/send-invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: ev.title,
+        date: ev.date,
+        location: ev.address && ev.address !== '[Not provided]' ? ev.address : '',
+        startTime: '09:00',
+        durationMinutes: assignments.reduce((t, a) => Math.max(t, a.hours * 60 + a.minutes), 0) || 120,
+        attendees: assignments.map(a => ({ email: a.email, hours: a.hours, minutes: a.minutes }))
+      })
+    });
+    const raw = await res.text();
+    let data = {};
+    try { data = JSON.parse(raw); } catch (_) {}
+    if (!res.ok) throw new Error(res.status + ' ' + (data.error || raw.slice(0, 200) || res.statusText));
+    ev.assignments.forEach(a => { a.invited = true; });
+    render();
+    toast('Invites sent to ' + (data.invited || assignments.map(a => a.email)).join(', '));
+  } catch (err) {
+    toast('Invite failed: ' + err.message);
+    console.error('[send-invite]', err);
+  }
+}
+
+document.getElementById('search').oninput = e => { state.query = e.target.value; render(); };
+render();
+</script>
 </body>
 </html>
