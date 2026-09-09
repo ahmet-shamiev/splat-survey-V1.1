@@ -44,6 +44,42 @@ async function getAccessToken() {
 }
 
 exports.handler = async (event) => {
+  // Diagnostic: GET ?debug=1 reports what the function actually received.
+  // Values are described, never printed in full — no secret leaves the box.
+  if (event.httpMethod === 'GET' && event.queryStringParameters && event.queryStringParameters.debug) {
+    const show = v => v == null ? null : {
+      length: v.length,
+      value: v.length > 60 ? v.slice(0, 30) + '…' + v.slice(-12) : v,
+      hasQuotes: /^["']|["']$/.test(v),
+      hasWhitespaceEdges: v !== v.trim(),
+      charCodes: v.length <= 60 ? Array.from(v).map(c => c.charCodeAt(0)).join(',') : 'n/a'
+    };
+    const key = process.env.GOOGLE_SA_PRIVATE_KEY || '';
+    let signOk = null, signErr = null;
+    try {
+      crypto.createSign('RSA-SHA256').update('x').sign(key.replace(/\\n/g, '\n'));
+      signOk = true;
+    } catch (e) { signOk = false; signErr = e.message; }
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        GOOGLE_SA_EMAIL: show(process.env.GOOGLE_SA_EMAIL),
+        GOOGLE_IMPERSONATE: show(process.env.GOOGLE_IMPERSONATE),
+        GOOGLE_CALENDAR_ID: show(process.env.GOOGLE_CALENDAR_ID),
+        privateKey: {
+          length: key.length,
+          startsCorrectly: key.startsWith('-----BEGIN PRIVATE KEY-----'),
+          endsCorrectly: key.trimEnd().endsWith('-----END PRIVATE KEY-----'),
+          usesEscapedNewlines: key.includes('\\n'),
+          usesRealNewlines: key.includes('\n'),
+          signWorks: signOk,
+          signError: signErr
+        }
+      }, null, 2)
+    };
+  }
+
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
 
   try {
