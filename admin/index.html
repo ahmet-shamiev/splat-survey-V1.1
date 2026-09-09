@@ -21,7 +21,12 @@
   .btn:hover { background:#0a6376; }
   .btn-ghost { cursor:pointer; border:1.5px solid #dde5e6; background:#fff; color:#4d6265; font-size:14px; font-weight:600; padding:10px 18px; border-radius:10px; }
   .inp { padding:10px 12px; font-size:14px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; color:#1e2a2c; outline:none; width:100%; }
-  .row { display:grid; grid-template-columns:1fr 110px 130px 40px; gap:12px; align-items:center; }
+  .row { display:grid; grid-template-columns:minmax(180px,1fr) 140px 140px 128px 34px; gap:12px; align-items:center; }
+  .tg { display:flex; align-items:center; gap:3px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; padding:3px 5px; }
+  .tg select { border:none; background:transparent; outline:none; font-size:13px; font-family:'DM Mono',monospace; color:#1e2a2c; padding:5px 1px; cursor:pointer; -webkit-appearance:none; appearance:none; text-align:center; text-align-last:center; }
+  .tg .sep { font-size:13px; color:#93a3a5; font-family:'DM Mono',monospace; }
+  .tg .ap { font-family:'DM Sans',sans-serif; font-weight:600; color:#0d7186; margin-left:2px; }
+  .tg:focus-within { border-color:#22b8cf; }
   .backdrop { position:fixed; inset:0; background:rgba(16,38,42,0.45); display:flex; align-items:center; justify-content:center; padding:24px; z-index:60; }
   .modal { background:#fff; border-radius:14px; width:100%; max-width:780px; max-height:88vh; overflow:auto; box-shadow:0 24px 60px rgba(9,40,46,0.28); }
   .lbl { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#93a3a5; }
@@ -53,8 +58,474 @@
 <div id="modal-mount"></div>
 <div id="toast-mount"></div>
 
-<script type="module">
-import { EVENTS, STAFF } from './event-data.js';
+<script>
+const EVENTS = [
+ {
+  "id": "evt-9",
+  "title": "PS 137K Thurs",
+  "school": "PS 137K Thurs",
+  "address": "123 Main St",
+  "subway": "1, 2, 3",
+  "type": "Camp",
+  "dayOfWeek": "Thursday",
+  "date": "2026-07-13",
+  "status": "Active",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-7",
+  "title": "PS 137K Thurs",
+  "school": "PS 137K Thurs",
+  "address": "123 Main St",
+  "subway": "1, 2, 3",
+  "type": "Camp",
+  "dayOfWeek": "Thursday",
+  "date": "2026-07-14",
+  "status": "Active",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-8",
+  "title": "PS 137K Thurs",
+  "school": "PS 137K Thurs",
+  "address": "123 Main St",
+  "subway": "1, 2, 3",
+  "type": "Camp",
+  "dayOfWeek": "Thursday",
+  "date": "2026-07-20",
+  "status": "Active",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-11",
+  "title": "MS 371x",
+  "school": "MS 371x",
+  "address": "650 hollywood ave Bronx",
+  "subway": "",
+  "type": "Special Event",
+  "dayOfWeek": "Monday",
+  "date": "2026-07-20",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-10",
+  "title": "PS 137K Thurs",
+  "school": "PS 137K Thurs",
+  "address": "123 Main St",
+  "subway": "1, 2, 3",
+  "type": "Camp",
+  "dayOfWeek": "Thursday",
+  "date": "2026-07-21",
+  "status": "Active",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-1",
+  "title": "Residency, PS 137K, Slime Kits, 7/22, every Wed till Sep",
+  "school": "PS 137K",
+  "address": "121 Saratoga Avenue",
+  "subway": "Sutter Av-Rutland Rd (3)",
+  "type": "AS Residency",
+  "dayOfWeek": "Sunday",
+  "date": "2026-07-22",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-16",
+  "title": "PS 16x - Slime Party - 7/22",
+  "school": "PS 16x",
+  "address": "4550 CARPENTER AVENUE",
+  "subway": "Nereid Av (2, 5)",
+  "type": "Not Defined",
+  "dayOfWeek": "Tuesday",
+  "date": "2026-07-22",
+  "status": "Active",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-17",
+  "title": "PS 95K - Residency School Day - 7/23",
+  "school": "PS 95K",
+  "address": "",
+  "subway": "",
+  "type": "AS Residency",
+  "dayOfWeek": "",
+  "date": "2026-07-23",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-12",
+  "title": "Staten Island Technical High School - Pop-Up - 7/28",
+  "school": "Staten Island Technical High School",
+  "address": "485 Clawson Street",
+  "subway": "Not found",
+  "type": "Not Defined",
+  "dayOfWeek": "Tuesday",
+  "date": "2026-07-28",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-2",
+  "title": "Residency, PS 137K, Slime Kits, 7/22, every Wed till Sep",
+  "school": "PS 137K",
+  "address": "121 Saratoga Avenue",
+  "subway": "Sutter Av-Rutland Rd (3)",
+  "type": "AS Residency",
+  "dayOfWeek": "Sunday",
+  "date": "2026-07-29",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-13",
+  "title": "New York Edge PS 309K - Pop-Up - 7/31",
+  "school": "New York Edge PS 309K",
+  "address": "794 Monroe S, Brooklyn, NY, 11221",
+  "subway": "Bedford-Nostrand Avs (G)",
+  "type": "Not Defined",
+  "dayOfWeek": "Friday",
+  "date": "2026-07-31",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-3",
+  "title": "Residency, PS 137K, Slime Kits, 7/22, every Wed till Sep",
+  "school": "PS 137K",
+  "address": "121 Saratoga Avenue",
+  "subway": "Sutter Av-Rutland Rd (3)",
+  "type": "AS Residency",
+  "dayOfWeek": "Sunday",
+  "date": "2026-08-05",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-14",
+  "title": "PS 137K Summer Program",
+  "school": "PS 137K Summer Program",
+  "address": "123 Main St",
+  "subway": "1, 2, 3",
+  "type": "Camp",
+  "dayOfWeek": "Saturday",
+  "date": "2026-08-05",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-5",
+  "title": "—",
+  "school": "—",
+  "address": "",
+  "subway": "",
+  "type": "",
+  "dayOfWeek": "Monday",
+  "date": "2026-08-06",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-15",
+  "title": "PS 137K Summer Program",
+  "school": "PS 137K Summer Program",
+  "address": "123 Main St",
+  "subway": "1, 2, 3",
+  "type": "Camp",
+  "dayOfWeek": "Saturday",
+  "date": "2026-08-06",
+  "status": "Active",
+  "signed": 2,
+  "limit": 10,
+  "slots": 8,
+  "signedUsers": [
+   "Ahmet Doe",
+   "Ahmet Joe"
+  ]
+ },
+ {
+  "id": "evt-4",
+  "title": "Residency, PS 137K, Slime Kits, 7/22, every Wed till Sep",
+  "school": "PS 137K",
+  "address": "121 Saratoga Avenue",
+  "subway": "Sutter Av-Rutland Rd (3)",
+  "type": "AS Residency",
+  "dayOfWeek": "Sunday",
+  "date": "2026-08-12",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-18",
+  "title": "PS 23K - Pop-Up, Residency School Day, Residency School Day -",
+  "school": "\"PS 23K\"",
+  "address": "545 Willoughby ave",
+  "subway": "Myrtle-Willoughby Avs (G)",
+  "type": "Residency School Day",
+  "dayOfWeek": "",
+  "date": "2026-08-19",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-20",
+  "title": "Children's Aid NYC - Residency School Day, Slime Kit - NYC Slime Kit - 8/20",
+  "school": "\"Children's Aid NYC\"",
+  "address": "",
+  "subway": "",
+  "type": "Not Defined",
+  "dayOfWeek": "Thursday",
+  "date": "2026-08-20",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 10,
+  "slots": 10,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-21",
+  "title": "Pedro Lopez PS 000 - Slime Party, Residency School Day, Residency After School, Slime Kit, Summer Rising, Pop-Up - 8/28",
+  "school": "\"Pedro Lopez PS 000\"",
+  "address": "141/1 Chambers Street",
+  "subway": "Wall Street 5th St, Brooklyn, NY 10001",
+  "type": "Not Defined",
+  "dayOfWeek": "Friday",
+  "date": "2026-08-28",
+  "status": "Inactive",
+  "signed": 0,
+  "limit": 9,
+  "slots": 9,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-19",
+  "title": "PS 343Q - Pop-Up, Residency School Day - 8/31",
+  "school": "PS 343Q",
+  "address": "45-45 42nd St",
+  "subway": "40 St-Lowery St (7, N, Q)",
+  "type": "Not Defined",
+  "dayOfWeek": "Monday",
+  "date": "2026-08-31",
+  "status": "Active",
+  "signed": 6,
+  "limit": 12,
+  "slots": 6,
+  "signedUsers": [
+   "Ahmet Joe",
+   "Ahmet JoeTest",
+   "Ahmet Test",
+   "Ahmet TestV",
+   "Ahmet Shamiev",
+   "Ahmet Shamiev2"
+  ]
+ },
+ {
+  "id": "evt-22",
+  "title": "P.S. 197 - THE KINGS HIGHWAY ACADEMY, F26, Pop-Up, Residency School Day, Residency After School, Slime Kit, 10/6",
+  "school": "P.S. 197 - THE KINGS HIGHWAY ACADEMY",
+  "address": "[Not provided]",
+  "subway": "Flatbush Av–Brooklyn College (2, 5)",
+  "type": "Residency School Day / Residency After School / Pop-Up / Slime Kit",
+  "dayOfWeek": "Tuesday / Thursday",
+  "date": "2026-10-06",
+  "status": "Active",
+  "signed": 0,
+  "limit": 8,
+  "slots": 8,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-24",
+  "title": "P.S. 197 - THE KINGS HIGHWAY ACADEMY, F26, Pop-Up, Residency School Day, Residency After School, Slime Kit, 10/6",
+  "school": "P.S. 197 - THE KINGS HIGHWAY ACADEMY",
+  "address": "[Not provided]",
+  "subway": "Flatbush Av–Brooklyn College (2, 5)",
+  "type": "Residency School Day / Residency After School / Pop-Up / Slime Kit",
+  "dayOfWeek": "Tuesday / Thursday",
+  "date": "2026-10-08",
+  "status": "Active",
+  "signed": 0,
+  "limit": 8,
+  "slots": 8,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-6",
+  "title": "—",
+  "school": "—",
+  "address": "",
+  "subway": "",
+  "type": "",
+  "dayOfWeek": "",
+  "date": "2026-10-12",
+  "status": "Active",
+  "signed": 4,
+  "limit": 10,
+  "slots": 6,
+  "signedUsers": [
+   "Ahmet Doe",
+   "Ahmet Joe",
+   "Ahmet JoeTest",
+   "Ahmet Shamiev"
+  ]
+ },
+ {
+  "id": "evt-23",
+  "title": "P.S. 197 - THE KINGS HIGHWAY ACADEMY, F26, Pop-Up, Residency School Day, Residency After School, Slime Kit, 10/6",
+  "school": "P.S. 197 - THE KINGS HIGHWAY ACADEMY",
+  "address": "[Not provided]",
+  "subway": "Flatbush Av–Brooklyn College (2, 5)",
+  "type": "Residency School Day / Residency After School / Pop-Up / Slime Kit",
+  "dayOfWeek": "Tuesday / Thursday",
+  "date": "2026-10-13",
+  "status": "Active",
+  "signed": 0,
+  "limit": 8,
+  "slots": 8,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-27",
+  "title": "P.S. 197 - THE KINGS HIGHWAY ACADEMY, F26, Pop-Up, Residency School Day, Residency After School, Slime Kit, 10/6",
+  "school": "P.S. 197 - THE KINGS HIGHWAY ACADEMY",
+  "address": "[Not provided]",
+  "subway": "Flatbush Av–Brooklyn College (2, 5)",
+  "type": "Residency School Day / Residency After School / Pop-Up / Slime Kit",
+  "dayOfWeek": "Tuesday / Thursday",
+  "date": "2026-10-15",
+  "status": "Active",
+  "signed": 0,
+  "limit": 8,
+  "slots": 8,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-25",
+  "title": "P.S. 197 - THE KINGS HIGHWAY ACADEMY, F26, Pop-Up, Residency School Day, Residency After School, Slime Kit, 10/6",
+  "school": "P.S. 197 - THE KINGS HIGHWAY ACADEMY",
+  "address": "[Not provided]",
+  "subway": "Flatbush Av–Brooklyn College (2, 5)",
+  "type": "Residency School Day / Residency After School / Pop-Up / Slime Kit",
+  "dayOfWeek": "Tuesday / Thursday",
+  "date": "2026-10-20",
+  "status": "Active",
+  "signed": 0,
+  "limit": 8,
+  "slots": 8,
+  "signedUsers": []
+ },
+ {
+  "id": "evt-26",
+  "title": "P.S. 197 - THE KINGS HIGHWAY ACADEMY, F26, Pop-Up, Residency School Day, Residency After School, Slime Kit, 10/6",
+  "school": "P.S. 197 - THE KINGS HIGHWAY ACADEMY",
+  "address": "[Not provided]",
+  "subway": "Flatbush Av–Brooklyn College (2, 5)",
+  "type": "Residency School Day / Residency After School / Pop-Up / Slime Kit",
+  "dayOfWeek": "Tuesday / Thursday",
+  "date": "2026-10-22",
+  "status": "Active",
+  "signed": 0,
+  "limit": 8,
+  "slots": 8,
+  "signedUsers": []
+ }
+];
+
+const STAFF = [
+ {
+  "id": "s1",
+  "name": "Ahmet Doe",
+  "email": "ahmet.doe@splatlab.co",
+  "rate": 32
+ },
+ {
+  "id": "s2",
+  "name": "Ahmet Joe",
+  "email": "ahmet.joe@splatlab.co",
+  "rate": 30
+ },
+ {
+  "id": "s3",
+  "name": "Ahmet JoeTest",
+  "email": "ahmet.joetest@splatlab.co",
+  "rate": 28
+ },
+ {
+  "id": "s4",
+  "name": "Ahmet Test",
+  "email": "bakero.app@gmail.com",
+  "rate": 28
+ },
+ {
+  "id": "s5",
+  "name": "Ahmet Shamiev",
+  "email": "ahmet.shamiev@splatlab.co",
+  "rate": 45
+ },
+ {
+  "id": "s6",
+  "name": "Ahmet TestV",
+  "email": "ahmet.testv@splatlab.co",
+  "rate": 30
+ },
+ {
+  "id": "s7",
+  "name": "Ahmet Shamiev2",
+  "email": "ahmet.shamiev2@splatlab.co",
+  "rate": 38
+ }
+];
 
 const state = {
   events: EVENTS.filter(e => e.status === 'Active').map(e => ({ ...e, assignments: [] })),
@@ -98,7 +569,7 @@ function render() {
     const stack = el('<div style="display:flex;flex-direction:column;gap:12px"></div>');
 
     g.events.forEach(e => {
-      const totalMin = e.assignments.reduce((t, a) => t + a.hours * 60 + a.minutes, 0);
+      const totalMin = e.assignments.reduce((t, a) => t + span(a), 0);
       const meta = [e.type, e.address, e.subway ? 'Subway ' + e.subway : ''].filter(Boolean).join(' · ') || 'Details TBD';
       const card = el('<div class="card"></div>');
       card.appendChild(el(`
@@ -127,7 +598,9 @@ function render() {
           const r = el(`<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#f7fafa;border:1px solid #e9f0f0;border-radius:10px;padding:10px 14px">
             <div style="font-size:14px;font-weight:600;min-width:150px">${esc(a.name)}</div>
             <div style="font-size:13px;color:#6b7c7e;flex:1;min-width:180px">${esc(a.email)}</div>
-            <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:#0d7186">${a.hours}h ${String(a.minutes).padStart(2,'0')}m</div>
+            <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:#0d7186">${fmtTime(a.from)} – ${fmtTime(a.till)}</div>
+            <div style="font-size:12px;color:#6b7c7e;font-variant-numeric:tabular-nums">${fmtDur(span(a))}</div>
+            <div class="pill" style="font-size:11px;border-radius:4px;background:#eef2f7;color:#4a5b73">${esc(a.cal)}</div>
             <div style="font-size:12px;color:${a.invited ? '#3f8f5f' : '#9a6234'};font-weight:500">${a.invited ? '✓ Invite sent' : 'Pending'}</div>
             <button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:#a05252;border-color:#e4dada">Remove</button>
           </div>`);
@@ -151,19 +624,27 @@ function openModal(id) {
   const ev = state.events.find(e => e.id === id);
   state.modalId = id;
   state.rows = ev.assignments.length
-    ? ev.assignments.map(a => ({ staffId: a.staffId, hours: a.hours, minutes: a.minutes }))
-    : [{ staffId: '', hours: 2, minutes: 0 }];
+    ? ev.assignments.map(a => ({ staffId: a.staffId, from: { ...a.from }, till: { ...a.till }, cal: a.cal }))
+    : [newRow()];
   renderModal();
 }
 function closeModal() { state.modalId = null; state.rows = []; document.getElementById('modal-mount').innerHTML = ''; }
+
+const CAL_TYPES = ['Primary', 'Secondary', 'Top Tier'];
+const newRow = () => ({ staffId: '', from: { h: 10, m: 0, ap: 'am' }, till: { h: 1, m: 0, ap: 'pm' }, cal: 'Primary' });
+const to24 = t => ((+t.h % 12) + (t.ap === 'pm' ? 12 : 0)) * 60 + (+t.m || 0);
+const span = r => Math.max(0, to24(r.till) - to24(r.from));
+const fmtTime = t => t.h + ':' + String(t.m).padStart(2, '0') + t.ap;
+const fmtDur = mins => Math.floor(mins / 60) + 'h ' + String(mins % 60).padStart(2, '0') + 'm';
 
 function updateTotals() {
   const t = document.getElementById('totals');
   if (!t) return;
   const valid = state.rows.filter(r => r.staffId);
-  const mins = valid.reduce((s, r) => s + (+r.hours || 0) * 60 + (+r.minutes || 0), 0);
+  const mins = valid.reduce((s, r) => s + span(r), 0);
+  const bad = valid.filter(r => span(r) === 0).length;
   t.textContent = valid.length
-    ? valid.length + ' staff · ' + Math.floor(mins / 60) + 'h ' + String(mins % 60).padStart(2, '0') + 'm total'
+    ? valid.length + ' staff · ' + fmtDur(mins) + ' total' + (bad ? ' · ' + bad + ' row' + (bad === 1 ? '' : 's') + ' need a valid time range' : '')
     : 'Nothing assigned yet';
 }
 
@@ -171,7 +652,7 @@ function renderModal() {
   const ev = state.events.find(e => e.id === state.modalId);
   if (!ev) return;
   const chosen = state.rows.map(r => r.staffId).filter(Boolean);
-  const totalMin = state.rows.filter(r => r.staffId).reduce((t, r) => t + (+r.hours || 0) * 60 + (+r.minutes || 0), 0);
+  const totalMin = state.rows.filter(r => r.staffId).reduce((t, r) => t + span(r), 0);
   const n = chosen.length;
 
   const mount = document.getElementById('modal-mount');
@@ -182,13 +663,13 @@ function renderModal() {
       <div style="font-size:13px;color:#6b7c7e;margin-top:4px">${esc(fmtDate(ev.date))} · ${esc(ev.type || 'Event')} · ${esc(ev.address || 'Location TBD')}</div>
     </div>
     <div style="padding:20px 26px">
-      <div class="row" style="padding-bottom:8px"><div class="lbl">Staff member</div><div class="lbl">Hours</div><div class="lbl">Minutes</div><div></div></div>
+      <div class="row" style="padding-bottom:8px"><div class="lbl">Staff member</div><div class="lbl">From</div><div class="lbl">Till</div><div class="lbl">Calendar type</div><div></div></div>
       <div id="rows" style="display:flex;flex-direction:column;gap:10px"></div>
       <button id="addrow" style="margin-top:14px;cursor:pointer;border:1.5px solid #b7dde5;background:#fff;color:#0d7d94;font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;display:inline-flex;align-items:center;gap:8px"><span style="font-size:16px;line-height:1">+</span>Add another staff member</button>
       <div style="margin-top:18px;background:#f2fafb;border:1px solid #d9eef2;border-radius:10px;padding:12px 14px;font-size:13px;color:#2c5c66;line-height:1.5">${n ? 'On confirm, a Google Calendar invite for this event is sent to ' + n + ' staff email' + (n === 1 ? '' : 's') + '.' : 'Pick a staff member to enable confirmation. Invites go out automatically on confirm.'}</div>
     </div>
     <div style="padding:16px 26px 22px;border-top:1px solid #eef3f3;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
-      <div id="totals" style="font-size:13px;color:#6b7c7e">${n ? n + ' staff · ' + Math.floor(totalMin/60) + 'h ' + String(totalMin%60).padStart(2,'0') + 'm total' : 'Nothing assigned yet'}</div>
+      <div id="totals" style="font-size:13px;color:#6b7c7e">${n ? n + ' staff · ' + fmtDur(totalMin) + ' total' : 'Nothing assigned yet'}</div>
       <div style="display:flex;gap:10px">
         <button id="cancel" class="btn-ghost">Cancel</button>
         <button id="confirm" class="btn" style="font-size:14px;padding:10px 20px;opacity:${n || ev.assignments.length ? 1 : 0.4}">${n ? 'Confirm &amp; send invites' : 'Confirm'}</button>
@@ -199,22 +680,36 @@ function renderModal() {
   const rowsEl = mount.querySelector('#rows');
   state.rows.forEach((r, i) => {
     const opts = STAFF.map(s => '<option value="' + s.id + '"' + (s.id === r.staffId ? ' selected' : '') + (chosen.includes(s.id) && s.id !== r.staffId ? ' disabled' : '') + '>' + esc(s.name + ' — ' + s.email) + '</option>').join('');
+    const timeGroup = key => `<div class="tg">
+      <select data-t="${key}" data-p="h" style="width:26px">${[12,1,2,3,4,5,6,7,8,9,10,11].map(h => '<option value="' + h + '"' + (+r[key].h === h ? ' selected' : '') + '>' + h + '</option>').join('')}</select>
+      <span class="sep">:</span>
+      <select data-t="${key}" data-p="m" style="width:26px">${[0,15,30,45].map(m => '<option value="' + m + '"' + (+r[key].m === m ? ' selected' : '') + '>' + String(m).padStart(2,'0') + '</option>').join('')}</select>
+      <select class="ap" data-t="${key}" data-p="ap" style="width:32px">${['am','pm'].map(a => '<option value="' + a + '"' + (r[key].ap === a ? ' selected' : '') + '>' + a + '</option>').join('')}</select>
+    </div>`;
+    const bad = r.staffId && span(r) === 0;
     const row = el(`<div class="row">
-      <select class="inp"><option value="">Select staff member…</option>${opts}</select>
-      <input class="inp" type="number" min="0" max="24" value="${r.hours}">
-      <select class="inp">${[0,15,30,45].map(m => '<option value="' + m + '"' + (+r.minutes === m ? ' selected' : '') + '>' + String(m).padStart(2,'0') + '</option>').join('')}</select>
-      <button class="btn-ghost" style="width:40px;height:40px;padding:0;font-size:18px;color:#93a3a5">×</button>
+      <select class="inp" data-staff><option value="">Select staff member…</option>${opts}</select>
+      ${timeGroup('from')}
+      ${timeGroup('till')}
+      <select class="inp" data-cal style="padding:10px 8px;font-size:13px">${CAL_TYPES.map(c => '<option value="' + c + '"' + (r.cal === c ? ' selected' : '') + '>' + c + '</option>').join('')}</select>
+      <button class="btn-ghost" style="width:34px;height:38px;padding:0;font-size:18px;color:#93a3a5">×</button>
     </div>`);
-    const [staffSel, hoursInp, minSel] = row.querySelectorAll('select, input');
-    staffSel.onchange = ev2 => { r.staffId = ev2.target.value; renderModal(); };
-    hoursInp.oninput = ev2 => { r.hours = ev2.target.value; updateTotals(); };
-    minSel.onchange = ev2 => { r.minutes = +ev2.target.value; renderModal(); };
+    if (bad) row.querySelectorAll('.tg').forEach(g => { g.style.borderColor = '#e3a08c'; });
+    row.querySelector('[data-staff]').onchange = ev2 => { r.staffId = ev2.target.value; renderModal(); };
+    row.querySelector('[data-cal]').onchange = ev2 => { r.cal = ev2.target.value; };
+    row.querySelectorAll('.tg select').forEach(s => {
+      s.onchange = ev2 => {
+        const v = ev2.target.dataset.p === 'ap' ? ev2.target.value : +ev2.target.value;
+        r[ev2.target.dataset.t][ev2.target.dataset.p] = v;
+        renderModal();
+      };
+    });
     row.querySelector('button').onclick = () => { state.rows.splice(i, 1); renderModal(); };
     rowsEl.appendChild(row);
   });
 
   updateTotals();
-  mount.querySelector('#addrow').onclick = () => { state.rows.push({ staffId: '', hours: 2, minutes: 0 }); renderModal(); };
+  mount.querySelector('#addrow').onclick = () => { state.rows.push(newRow()); renderModal(); };
   mount.querySelector('#cancel').onclick = closeModal;
   mount.querySelector('#confirm').onclick = confirmAssign;
 }
@@ -223,7 +718,7 @@ async function confirmAssign() {
   const ev = state.events.find(e => e.id === state.modalId);
   const assignments = state.rows.filter(r => r.staffId).map(r => {
     const p = STAFF.find(s => s.id === r.staffId);
-    return { staffId: p.id, name: p.name, email: p.email, hours: +r.hours || 0, minutes: +r.minutes || 0, invited: false };
+    return { staffId: p.id, name: p.name, email: p.email, from: { ...r.from }, till: { ...r.till }, cal: r.cal, invited: false };
   });
   ev.assignments = assignments;
   closeModal();
@@ -239,14 +734,15 @@ async function confirmAssign() {
         title: ev.title,
         date: ev.date,
         location: ev.address && ev.address !== '[Not provided]' ? ev.address : '',
-        startTime: '09:00',
-        durationMinutes: assignments.reduce((t, a) => Math.max(t, a.hours * 60 + a.minutes), 0) || 120,
-        attendees: assignments.map(a => ({ email: a.email, hours: a.hours, minutes: a.minutes }))
+        startTime: (() => { const m = Math.min(...assignments.map(a => to24(a.from))); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); })(),
+        durationMinutes: (Math.max(...assignments.map(a => to24(a.till))) - Math.min(...assignments.map(a => to24(a.from)))) || 120,
+        attendees: assignments.map(a => ({ email: a.email, from: fmtTime(a.from), till: fmtTime(a.till), minutes: span(a), calendarType: a.cal }))
       })
     });
     const raw = await res.text();
     let data = {};
     try { data = JSON.parse(raw); } catch (_) {}
+    if (res.status === 404) throw new Error('invite endpoint not available (only works on the deployed Netlify site)');
     if (!res.ok) throw new Error(res.status + ' ' + (data.error || raw.slice(0, 200) || res.statusText));
     ev.assignments.forEach(a => { a.invited = true; });
     render();
