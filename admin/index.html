@@ -208,6 +208,7 @@ const newRow = () => ({ staffId: '', from: { h: 10, m: 0, ap: 'am' }, till: { h:
 const to24 = t => ((+t.h % 12) + (t.ap === 'pm' ? 12 : 0)) * 60 + (+t.m || 0);
 const span = r => Math.max(0, to24(r.till) - to24(r.from));
 const fmtTime = t => t.h + ':' + String(t.m).padStart(2, '0') + t.ap;
+const fmt24 = t => { const m = to24(t); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
 const fmtDur = mins => Math.floor(mins / 60) + 'h ' + String(mins % 60).padStart(2, '0') + 'm';
 
 function updateTotals() {
@@ -333,7 +334,7 @@ async function confirmAssign() {
         location: ev.address && ev.address !== '[Not provided]' ? ev.address : '',
         startTime: (() => { const m = Math.min(...assignments.map(a => to24(a.from))); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); })(),
         durationMinutes: (Math.max(...assignments.map(a => to24(a.till))) - Math.min(...assignments.map(a => to24(a.from)))) || 120,
-        attendees: assignments.map(a => ({ email: a.email, from: fmtTime(a.from), till: fmtTime(a.till), minutes: span(a), calendarType: a.cal }))
+        attendees: assignments.map(a => ({ email: a.email, from: fmt24(a.from), till: fmt24(a.till), minutes: span(a), calendarType: a.cal }))
       })
     });
     const raw = await res.text();
