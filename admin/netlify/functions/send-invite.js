@@ -84,7 +84,7 @@ exports.handler = async (event) => {
 
   try {
     // { title, date: 'YYYY-MM-DD', location, startTime: 'HH:MM', durationMinutes,
-    //   attendees: [{ email, hours, minutes }] }
+    //   attendees: [{ email, from, till, minutes, calendarType }] with from/till as 'HH:MM' }
     const body = JSON.parse(event.body || '{}');
     const attendees = (body.attendees || []).filter(a => a.email);
     if (!attendees.length) return { statusCode: 400, body: JSON.stringify({ error: 'No attendees' }) };
@@ -107,7 +107,11 @@ exports.handler = async (event) => {
           summary: body.title || 'SplatLab event',
           location: body.location || '',
           description: attendees
-            .map(a => `${a.email}: ${a.hours || 0}h ${String(a.minutes || 0).padStart(2, '0')}m assigned`)
+            .map(a => {
+              const dur = a.minutes ? ` (${Math.floor(a.minutes / 60)}h ${String(a.minutes % 60).padStart(2, '0')}m)` : '';
+              const range = a.from && a.till ? `${a.from}–${a.till}${dur}` : dur.trim();
+              return `${a.email}: ${range}${a.calendarType ? ' · ' + a.calendarType : ''}`;
+            })
             .join('\n'),
           start: { dateTime: start, timeZone: tz },
           end: { dateTime: end, timeZone: tz },
