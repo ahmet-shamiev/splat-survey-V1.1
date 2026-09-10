@@ -106,17 +106,13 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           summary: body.title || 'SplatLab event',
           location: body.location || '',
-          description: attendees
-            .map(a => {
-              const dur = a.minutes ? ` (${Math.floor(a.minutes / 60)}h ${String(a.minutes % 60).padStart(2, '0')}m)` : '';
-              const range = a.from && a.till ? `${a.from}–${a.till}${dur}` : dur.trim();
-              return `${a.email}: ${range}${a.calendarType ? ' · ' + a.calendarType : ''}`;
-            })
-            .join('\n'),
+          description: body.description || `Shift: ${(body.startTime || '')}–${end.slice(11, 16)}`,
           start: { dateTime: start, timeZone: tz },
           end: { dateTime: end, timeZone: tz },
           attendees: attendees.map(a => ({ email: a.email })),
-          guestsCanSeeOtherGuests: true,
+          guestsCanSeeOtherGuests: false,
+          guestsCanInviteOthers: false,
+          guestsCanModify: false,
           reminders: { useDefault: true }
         })
       }
