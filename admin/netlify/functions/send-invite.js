@@ -106,7 +106,7 @@ exports.handler = async (event) => {
         body: JSON.stringify({
           summary: body.title || 'SplatLab event',
           location: body.location || '',
-          description: body.description || `Shift: ${(body.startTime || '')}–${end.slice(11, 16)}`,
+          description: body.description || `Shift: ${(body.startTime || '')}–${end.slice(11, 16)} (New York time)`,
           start: { dateTime: start, timeZone: tz },
           end: { dateTime: end, timeZone: tz },
           attendees: attendees.map(a => ({ email: a.email })),
