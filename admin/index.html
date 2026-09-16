@@ -203,7 +203,7 @@ function openModal(id) {
 }
 function closeModal() { state.modalId = null; state.rows = []; document.getElementById('modal-mount').innerHTML = ''; }
 
-const CAL_TYPES = ['Program Calendars', 'Special Events Calendar', 'OPS Calendar', 'After School Calendar', 'SDW Calendar'];
+const CAL_TYPES = ['Special Events Calendar', 'OPS Calendar', 'After School Calendar', 'SDW Calendar'];
 const newRow = () => ({ staffId: '', from: { h: 10, m: 0, ap: 'am' }, till: { h: 1, m: 0, ap: 'pm' }, cal: CAL_TYPES[0] });
 const to24 = t => ((+t.h % 12) + (t.ap === 'pm' ? 12 : 0)) * 60 + (+t.m || 0);
 const span = r => Math.max(0, to24(r.till) - to24(r.from));
@@ -344,7 +344,9 @@ async function confirmAssign() {
     if (!res.ok) throw new Error(res.status + ' ' + (data.error || raw.slice(0, 200) || res.statusText));
     ev.assignments.forEach(a => { a.invited = true; });
     render();
-    toast('Invites sent to ' + (data.invited || assignments.map(a => a.email)).join(', '));
+    const nEv = (data.events || []).length;
+    toast('Invites sent \u00b7 ' + (nEv > 1 ? nEv + ' calendar events \u00b7 ' : '') + (data.invited || assignments.map(a => a.email)).join(', '));
+    if (data.errors && data.errors.length) toast('Some calendars failed: ' + data.errors.join(' | '));
   } catch (err) {
     toast('Invite failed: ' + err.message);
     console.error('[send-invite]', err);
