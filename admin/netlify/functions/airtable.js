@@ -124,7 +124,9 @@ async function createAssignments(payload) {
       fields: {
         'Staff Member': [staffRecId],
         'Event': [eventId],
-        'Calendar Type': a.calendarType,
+        // Linked-record field: typecast matches these names against the
+        // calendar table's primary field (or creates them if absent).
+        'Calendar Type': a.calendarType ? [a.calendarType] : undefined,
         'Start Time': a.from,
         'End Time': a.till,
         'Duration': Math.round((a.minutes / 60) * 100) / 100
