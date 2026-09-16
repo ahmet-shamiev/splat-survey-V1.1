@@ -6,7 +6,14 @@
 //   GOOGLE_SA_EMAIL        service account client_email
 //   GOOGLE_SA_PRIVATE_KEY  service account private_key (paste with \n escapes)
 //   GOOGLE_IMPERSONATE     Workspace user to act as, e.g. admin@yourdomain.com
-//   GOOGLE_CALENDAR_ID     calendar to write to (default: primary)
+//
+// Per-calendar-type routing — one event per Calendar Type, on its own calendar.
+// The chosen type decides the calendar; there is no fallback, so a missing or
+// unmapped type is reported as an error rather than landing somewhere else.
+//   GOOGLE_CAL_SPECIAL_EVENTS    "Special Events Calendar"
+//   GOOGLE_CAL_OPS               "OPS Calendar"
+//   GOOGLE_CAL_AFTER_SCHOOL      "After School Calendar"
+//   GOOGLE_CAL_SDW               "SDW Calendar"
 //
 // Workspace Admin → Security → API controls → Domain-wide delegation:
 //   add the service account Client ID with scope
@@ -82,6 +89,27 @@ exports.handler = async (event) => {
 
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
 
+  // Calendar Type (as shown in the staffing modal) → Netlify env var holding its calendar ID.
+  const CAL_ENV = {
+    'Special Events Calendar': 'GOOGLE_CAL_SPECIAL_EVENTS',
+    'OPS Calendar': 'GOOGLE_CAL_OPS',
+    'After School Calendar': 'GOOGLE_CAL_AFTER_SCHOOL',
+    'SDW Calendar': 'GOOGLE_CAL_SDW'
+  };
+  const calendarIdFor = type => {
+    if (!type) throw new Error('No calendar type was chosen for this assignment');
+    const envName = CAL_ENV[type];
+    if (!envName) throw new Error(`"${type}" is not a known calendar type`);
+    const mapped = (process.env[envName] || '').trim();
+    if (!mapped) throw new Error(`${envName} is not set on this site, so "${type}" has no calendar to send from`);
+    return mapped;
+  };
+  const toMin = t => {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(String(t || '').trim());
+    return m ? +m[1] * 60 + +m[2] : null;
+  };
+  const hhmm = n => String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0');
+
   try {
     // { title, date: 'YYYY-MM-DD', location, startTime: 'HH:MM', durationMinutes,
     //   attendees: [{ email, from, till, minutes, calendarType }] with from/till as 'HH:MM' }
@@ -90,39 +118,86 @@ exports.handler = async (event) => {
     if (!attendees.length) return { statusCode: 400, body: JSON.stringify({ error: 'No attendees' }) };
 
     const token = await getAccessToken();
-    const calendarId = encodeURIComponent(process.env.GOOGLE_CALENDAR_ID || 'primary');
     const tz = body.timeZone || 'America/New_York';
-    const start = (body.date || '') + 'T' + (body.startTime || '09:00') + ':00';
-    const mins = body.durationMinutes || 120;
-    const endDate = new Date(start + 'Z');
-    endDate.setUTCMinutes(endDate.getUTCMinutes() + mins);
-    const end = endDate.toISOString().slice(0, 19);
 
-    const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?sendUpdates=all`,
-      {
-        method: 'POST',
-        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          summary: body.title || 'SplatLab event',
-          location: body.location || '',
-          description: body.description || `Shift: ${(body.startTime || '')}–${end.slice(11, 16)} (New York time)`,
-          start: { dateTime: start, timeZone: tz },
-          end: { dateTime: end, timeZone: tz },
-          attendees: attendees.map(a => ({ email: a.email })),
-          guestsCanSeeOtherGuests: false,
-          guestsCanInviteOthers: false,
-          guestsCanModify: false,
-          reminders: { useDefault: true }
-        })
+    // Group attendees by Calendar Type so each group becomes its own event on its
+    // own calendar, spanning only that group's earliest-to-latest assigned times.
+    const groups = new Map();
+    attendees.forEach(a => {
+      const type = a.calendarType || '';
+      if (!groups.has(type)) groups.set(type, []);
+      groups.get(type).push(a);
+    });
+
+    const results = [];
+    const errors = [];
+
+    for (const [type, people] of groups) {
+      let calId;
+      try {
+        calId = calendarIdFor(type);
+      } catch (e) {
+        errors.push((type || 'no calendar type') + ': ' + e.message);
+        continue;
       }
-    );
-    const data = await res.json();
-    if (!res.ok) return { statusCode: res.status, body: JSON.stringify({ error: data.error?.message || 'Calendar API error' }) };
+      const mins = people.map(p => toMin(p.from)).filter(m => m !== null);
+      const maxs = people.map(p => toMin(p.till)).filter(m => m !== null);
+      const startMin = mins.length ? Math.min(...mins) : null;
+      const endMin = maxs.length ? Math.max(...maxs) : null;
+
+      const startTime = startMin !== null ? hhmm(startMin) : (body.startTime || '09:00');
+      const start = (body.date || '') + 'T' + startTime + ':00';
+      const dur = startMin !== null && endMin !== null && endMin > startMin
+        ? endMin - startMin
+        : (body.durationMinutes || 120);
+      const endDate = new Date(start + 'Z');
+      endDate.setUTCMinutes(endDate.getUTCMinutes() + dur);
+      const end = endDate.toISOString().slice(0, 19);
+
+      const res = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?sendUpdates=all`,
+        {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            summary: body.title || 'SplatLab event',
+            location: body.location || '',
+            description: body.description || `Shift: ${startTime}–${end.slice(11, 16)} (New York time)`,
+            start: { dateTime: start, timeZone: tz },
+            end: { dateTime: end, timeZone: tz },
+            attendees: people.map(a => ({ email: a.email })),
+            guestsCanSeeOtherGuests: false,
+            guestsCanInviteOthers: false,
+            guestsCanModify: false,
+            reminders: { useDefault: true }
+          })
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        errors.push((type || 'no calendar type') + ': ' + ((data.error && data.error.message) || res.status + ' Calendar API error'));
+        continue;
+      }
+      results.push({
+        calendarType: type,
+        calendarId: calId,
+        eventId: data.id,
+        htmlLink: data.htmlLink,
+        invited: people.map(a => a.email)
+      });
+    }
+
+    if (!results.length)
+      return { statusCode: 502, body: JSON.stringify({ error: errors.join(' | ') || 'No events created' }) };
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ok: true, eventId: data.id, htmlLink: data.htmlLink, invited: attendees.map(a => a.email) })
+      body: JSON.stringify({
+        ok: true,
+        events: results,
+        invited: results.reduce((all, r) => all.concat(r.invited), []),
+        errors
+      })
     };
   } catch (e) {
     return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
