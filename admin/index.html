@@ -21,7 +21,7 @@
   .btn:hover { background:#0a6376; }
   .btn-ghost { cursor:pointer; border:1.5px solid #dde5e6; background:#fff; color:#4d6265; font-size:14px; font-weight:600; padding:10px 18px; border-radius:10px; }
   .inp { padding:10px 12px; font-size:14px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; color:#1e2a2c; outline:none; width:100%; }
-  .row { display:grid; grid-template-columns:minmax(180px,1fr) 140px 140px 128px 34px; gap:12px; align-items:center; }
+  .row { display:grid; grid-template-columns:minmax(160px,1fr) 140px 140px 170px 34px; gap:12px; align-items:center; }
   .tg { display:flex; align-items:center; gap:3px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; padding:3px 5px; }
   .tg select { border:none; background:transparent; outline:none; font-size:13px; font-family:'DM Mono',monospace; color:#1e2a2c; padding:5px 1px; cursor:pointer; -webkit-appearance:none; appearance:none; text-align:center; text-align-last:center; }
   .tg .sep { font-size:13px; color:#93a3a5; font-family:'DM Mono',monospace; }
@@ -203,8 +203,8 @@ function openModal(id) {
 }
 function closeModal() { state.modalId = null; state.rows = []; document.getElementById('modal-mount').innerHTML = ''; }
 
-const CAL_TYPES = ['Primary', 'Secondary', 'Top Tier'];
-const newRow = () => ({ staffId: '', from: { h: 10, m: 0, ap: 'am' }, till: { h: 1, m: 0, ap: 'pm' }, cal: 'Primary' });
+const CAL_TYPES = ['Program Calendars', 'Special Events Calendar', 'OPS Calendar'];
+const newRow = () => ({ staffId: '', from: { h: 10, m: 0, ap: 'am' }, till: { h: 1, m: 0, ap: 'pm' }, cal: CAL_TYPES[0] });
 const to24 = t => ((+t.h % 12) + (t.ap === 'pm' ? 12 : 0)) * 60 + (+t.m || 0);
 const span = r => Math.max(0, to24(r.till) - to24(r.from));
 const fmtTime = t => t.h + ':' + String(t.m).padStart(2, '0') + t.ap;
@@ -265,7 +265,7 @@ function renderModal() {
       <select class="inp" data-staff><option value="">Select staff member…</option>${opts}</select>
       ${timeGroup('from')}
       ${timeGroup('till')}
-      <select class="inp" data-cal style="padding:10px 8px;font-size:13px">${CAL_TYPES.map(c => '<option value="' + c + '"' + (r.cal === c ? ' selected' : '') + '>' + c + '</option>').join('')}</select>
+      <select class="inp" data-cal style="padding:10px 6px;font-size:12px">${CAL_TYPES.map(c => '<option value="' + c + '"' + (r.cal === c ? ' selected' : '') + '>' + c + '</option>').join('')}</select>
       <button class="btn-ghost" style="width:34px;height:38px;padding:0;font-size:18px;color:#93a3a5">×</button>
     </div>`);
     if (bad) row.querySelectorAll('.tg').forEach(g => { g.style.borderColor = '#e3a08c'; });
