@@ -110,6 +110,27 @@ exports.handler = async (event) => {
   };
   const hhmm = n => String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0');
 
+  // Google Calendar descriptions accept a small HTML subset (b, i, u, br, a, ul/li).
+  const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const linkify = s => s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1">$1</a>');
+  // Lines ending in ":" read as headings in the reference invite, so bold them.
+  const briefToHtml = text =>
+    String(text || '')
+      .replace(/\r\n?/g, '\n')
+      .split('\n')
+      .map(line => {
+        const t = line.trim();
+        if (!t) return '';
+        const html = linkify(escHtml(t));
+        return /:$/.test(t) ? '<b>' + html + '</b>' : html;
+      })
+      .join('<br>');
+  // Calendar attachments must be Drive files; anything else can only be a link.
+  const driveAttachment = (url, title) => {
+    if (!url || !/^https:\/\/(drive|docs)\.google\.com\//.test(url)) return null;
+    return [{ fileUrl: url, title: title || 'Project guide' }];
+  };
+
   try {
     // { title, date: 'YYYY-MM-DD', location, startTime: 'HH:MM', durationMinutes,
     //   attendees: [{ email, from, till, minutes, calendarType }] with from/till as 'HH:MM' }
@@ -154,15 +175,24 @@ exports.handler = async (event) => {
       endDate.setUTCMinutes(endDate.getUTCMinutes() + dur);
       const end = endDate.toISOString().slice(0, 19);
 
+      const shift = `<b>Shift:</b> ${startTime}–${end.slice(11, 16)} (New York time)`;
+      const guide = body.guideUrl
+        ? `<b>Project guide:</b> <a href="${escHtml(body.guideUrl)}">${escHtml(body.guideUrl)}</a>`
+        : '';
+      const brief = briefToHtml(body.brief);
+      const description = [brief, brief ? '<br>' : '', shift, guide].filter(Boolean).join('<br>');
+      const attachments = driveAttachment(body.guideUrl, body.guideTitle);
+
       const res = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?sendUpdates=all`,
+        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?sendUpdates=all&supportsAttachments=true`,
         {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             summary: body.title || 'SplatLab event',
             location: body.location || '',
-            description: body.description || `Shift: ${startTime}–${end.slice(11, 16)} (New York time)`,
+            description,
+            ...(attachments ? { attachments } : {}),
             start: { dateTime: start, timeZone: tz },
             end: { dateTime: end, timeZone: tz },
             attendees: people.map(a => ({ email: a.email })),
