@@ -178,7 +178,7 @@ function render() {
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div class="lbl" style="margin:0">Project guide</div>
             ${e.guideUrl
-              ? `<a href="${esc(e.guideUrl)}" target="_blank" rel="noopener" style="font-size:13px;color:#0d7186;word-break:break-all">${esc(e.guideUrl)}</a>
+              ? `<a href="${esc(e.guideUrl)}" target="_blank" rel="noopener" style="font-size:13px;font-weight:600;color:#0d7186">PROJECT GUIDE</a>
                  <span class="pill" style="font-size:11px;border-radius:4px;background:${/drive\.google\.com|docs\.google\.com/.test(e.guideUrl) ? '#e4f7ec;color:#2f7a52' : '#fdf1e7;color:#9a6234'}">${/drive\.google\.com|docs\.google\.com/.test(e.guideUrl) ? 'Attaches to invite' : 'Not a Drive link — sent as a link only'}</span>`
               : '<span style="font-size:13px;color:#93a3a5">No Project Guide URL on this record</span>'}
           </div>
