@@ -86,7 +86,7 @@ async function loadData() {
     ]);
     EVENTS = ev.events || [];
     STAFF = st.staff || [];
-    state.events = EVENTS.map(e => ({ ...e, assignments: [] }));
+    state.events = EVENTS.map(e => ({ ...e, assignments: [], open: false, briefOriginal: e.brief || '', briefDirty: false }));
   } catch (err) {
     state.error = err.message;
     console.error('[airtable]', err);
@@ -163,7 +163,42 @@ function render() {
       const addBtn = el('<button class="btn"><span style="font-size:16px;line-height:1">+</span>' + (e.assignments.length ? 'Manage staff' : 'Add staff') + '</button>');
       addBtn.onclick = () => openModal(e.id);
       actions.appendChild(addBtn);
+      const briefBtn = el(`<button class="btn-ghost" style="font-size:12px;padding:7px 12px;display:inline-flex;align-items:center;gap:7px"><span style="display:inline-block;transition:transform .15s;transform:rotate(${e.open ? 90 : 0}deg);font-size:10px">▶</span>${e.open ? 'Hide brief' : 'Event brief'}${e.briefDirty ? ' · edited' : ''}</button>`);
+      briefBtn.onclick = () => { e.open = !e.open; render(); };
+      actions.appendChild(briefBtn);
       card.appendChild(actions);
+
+      if (e.open) {
+        const panel = el(`<div style="width:100%;border-top:1px solid #eef3f3;padding-top:14px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <div class="lbl">Task description summary — sent in the invite</div>
+            <div style="font-size:12px;color:#93a3a5">Edits apply to invites sent from here; Airtable is not updated yet.</div>
+          </div>
+          <textarea data-brief rows="8" placeholder="Contact details, schedule at a glance, dates, links… plain text, line breaks are kept." style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:13px;line-height:1.6;font-family:inherit;border:1.5px solid #dde5e6;border-radius:10px;background:#fff;color:#1e2a2c;outline:none;resize:vertical"></textarea>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div class="lbl" style="margin:0">Project guide</div>
+            ${e.guideUrl
+              ? `<a href="${esc(e.guideUrl)}" target="_blank" rel="noopener" style="font-size:13px;color:#0d7186;word-break:break-all">${esc(e.guideUrl)}</a>
+                 <span class="pill" style="font-size:11px;border-radius:4px;background:${/drive\.google\.com|docs\.google\.com/.test(e.guideUrl) ? '#e4f7ec;color:#2f7a52' : '#fdf1e7;color:#9a6234'}">${/drive\.google\.com|docs\.google\.com/.test(e.guideUrl) ? 'Attaches to invite' : 'Not a Drive link — sent as a link only'}</span>`
+              : '<span style="font-size:13px;color:#93a3a5">No Project Guide URL on this record</span>'}
+          </div>
+          <div style="display:flex;gap:10px">
+            <button data-reset class="btn-ghost" style="font-size:12px;padding:7px 12px;opacity:${e.briefDirty ? 1 : 0.4}">Revert to Airtable</button>
+          </div>
+        </div>`);
+        const ta = panel.querySelector('[data-brief]');
+        ta.value = e.brief || '';
+        ta.oninput = () => {
+          e.brief = ta.value;
+          e.briefDirty = ta.value !== (e.briefOriginal || '');
+        };
+        panel.querySelector('[data-reset]').onclick = () => {
+          e.brief = e.briefOriginal || '';
+          e.briefDirty = false;
+          render();
+        };
+        card.appendChild(panel);
+      }
 
       if (e.assignments.length) {
         const block = el('<div style="width:100%;border-top:1px solid #eef3f3;padding-top:14px;display:flex;flex-direction:column;gap:8px"><div class="lbl">Assigned staff</div></div>');
@@ -331,6 +366,9 @@ async function confirmAssign() {
       body: JSON.stringify({
         title: ev.title,
         date: ev.date,
+        brief: ev.brief || '',
+        guideUrl: ev.guideUrl || '',
+        guideTitle: 'Project guide — ' + ev.title,
         location: ev.address && ev.address !== '[Not provided]' ? ev.address : '',
         startTime: (() => { const m = Math.min(...assignments.map(a => to24(a.from))); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); })(),
         durationMinutes: (Math.max(...assignments.map(a => to24(a.till))) - Math.min(...assignments.map(a => to24(a.from)))) || 120,
