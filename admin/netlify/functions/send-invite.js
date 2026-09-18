@@ -112,8 +112,7 @@ exports.handler = async (event) => {
 
   // Google Calendar descriptions accept a small HTML subset (b, i, u, br, a, ul/li).
   const escHtml = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const linkify = s => s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1">$1</a>');
-  // Lines ending in ":" read as headings in the reference invite, so bold them.
+  const linkify = s => s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1">$1</a>');  // Lines ending in ":" read as headings in the reference invite, so bold them.
   const briefToHtml = text =>
     String(text || '')
       .replace(/\r\n?/g, '\n')
@@ -177,7 +176,7 @@ exports.handler = async (event) => {
 
       const shift = `<b>Shift:</b> ${startTime}–${end.slice(11, 16)} (New York time)`;
       const guide = body.guideUrl
-        ? `<b>Project guide:</b> <a href="${escHtml(body.guideUrl)}">${escHtml(body.guideUrl)}</a>`
+        ? `<a href="${escHtml(body.guideUrl)}"><b>PROJECT GUIDE</b></a>`
         : '';
       const brief = briefToHtml(body.brief);
       const description = [brief, brief ? '<br>' : '', shift, guide].filter(Boolean).join('<br>');

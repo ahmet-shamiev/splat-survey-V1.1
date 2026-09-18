@@ -44,8 +44,23 @@ async function listAll(table, qs) {
 
 const f = (rec, name) => {
   const v = rec.fields[name];
-  return Array.isArray(v) ? v.join(', ') : v;
+  return flat(v);
 };
+
+// Airtable returns plain strings for most fields, but AI / rich-text fields come
+// back as objects ({ state, value, isStale }) and lookups as arrays of either.
+function flat(v) {
+  if (v === null || v === undefined) return '';
+  if (Array.isArray(v)) return v.map(flat).filter(Boolean).join(', ');
+  if (typeof v === 'object') {
+    if (typeof v.value === 'string') return v.value;
+    if (typeof v.text === 'string') return v.text;
+    if (typeof v.name === 'string') return v.name;
+    if (typeof v.url === 'string') return v.url;
+    return '';
+  }
+  return String(v);
+}
 
 // "M/DD/YYYY (from Date)" is a lookup — may arrive as an array or a US-format string.
 function isoDate(rec) {
