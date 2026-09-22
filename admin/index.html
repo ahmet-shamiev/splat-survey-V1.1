@@ -186,11 +186,18 @@ function render() {
           </div>
         </div>`);
         const ta = panel.querySelector('[data-brief]');
+        const saveBtn = panel.querySelector('[data-save]');
+        const syncSave = () => {
+          saveBtn.style.opacity = e.briefDirty ? 1 : 0.4;
+          saveBtn.style.pointerEvents = e.briefDirty ? 'auto' : 'none';
+        };
         ta.value = e.brief || '';
         ta.oninput = () => {
           e.brief = ta.value;
           e.briefDirty = ta.value !== (e.briefOriginal || '');
+          syncSave();
         };
+        syncSave();
         panel.querySelector('[data-save]').onclick = async (evt) => {
           const btn = evt.currentTarget;
           btn.disabled = true;
