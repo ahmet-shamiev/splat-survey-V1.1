@@ -172,7 +172,7 @@ function render() {
         const panel = el(`<div style="width:100%;border-top:1px solid #eef3f3;padding-top:14px;display:flex;flex-direction:column;gap:10px">
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
             <div class="lbl">Task description summary — sent in the invite</div>
-            <div style="font-size:12px;color:#93a3a5">Edits apply to invites sent from here; Airtable is not updated yet.</div>
+            <div style="font-size:12px;color:#93a3a5">Edits go into the invite; save to write them back to Airtable.</div>
           </div>
           <textarea data-brief rows="8" placeholder="Contact details, schedule at a glance, dates, links… plain text, line breaks are kept." style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:13px;line-height:1.6;font-family:inherit;border:1.5px solid #dde5e6;border-radius:10px;background:#fff;color:#1e2a2c;outline:none;resize:vertical"></textarea>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -181,8 +181,8 @@ function render() {
                  <span class="pill" style="font-size:11px;border-radius:4px;background:${/drive\.google\.com|docs\.google\.com/.test(e.guideUrl) ? '#e4f7ec;color:#2f7a52' : '#fdf1e7;color:#9a6234'}">${/drive\.google\.com|docs\.google\.com/.test(e.guideUrl) ? 'Attaches to invite' : 'Not a Drive link — sent as a link only'}</span>`
               : '<span style="font-size:13px;color:#93a3a5">No Project Guide URL on this record</span>'}
           </div>
-          <div style="display:flex;gap:10px">
-            <button data-reset class="btn-ghost" style="font-size:12px;padding:7px 12px;opacity:${e.briefDirty ? 1 : 0.4}">Revert to Airtable</button>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button data-save class="btn" style="font-size:12px;padding:8px 14px;opacity:${e.briefDirty ? 1 : 0.4};pointer-events:${e.briefDirty ? 'auto' : 'none'}">Save to Airtable</button>
           </div>
         </div>`);
         const ta = panel.querySelector('[data-brief]');
@@ -191,10 +191,27 @@ function render() {
           e.brief = ta.value;
           e.briefDirty = ta.value !== (e.briefOriginal || '');
         };
-        panel.querySelector('[data-reset]').onclick = () => {
-          e.brief = e.briefOriginal || '';
-          e.briefDirty = false;
-          render();
+        panel.querySelector('[data-save]').onclick = async (evt) => {
+          const btn = evt.currentTarget;
+          btn.disabled = true;
+          btn.textContent = 'Saving…';
+          try {
+            const res = await getJSON(API, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ eventId: e.id, brief: e.brief })
+            });
+            e.briefOriginal = res.brief != null ? res.brief : e.brief;
+            e.brief = e.briefOriginal;
+            e.briefDirty = false;
+            toast('Saved to Airtable');
+            render();
+          } catch (err) {
+            btn.disabled = false;
+            btn.textContent = 'Save to Airtable';
+            toast('Airtable save failed: ' + err.message);
+            console.error('[airtable-brief]', err);
+          }
         };
         card.appendChild(panel);
       }
