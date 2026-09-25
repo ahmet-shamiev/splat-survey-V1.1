@@ -147,6 +147,64 @@ async function updateEventBrief(payload) {
   }
 }
 
+// Existing Assignments grouped by event id. Two reads: raw (record ids for Event /
+// Staff links) and string-format (so the Calendar Type link comes back as its name).
+async function getAssignments(eventIds) {
+  const want = new Set(eventIds);
+  if (!want.size) return {};
+  const fields = ['Event', 'Staff Member', 'Calendar Type', 'Start Time', 'End Time']
+    .map(n => 'fields%5B%5D=' + encodeURIComponent(n)).join('&');
+  const [raw, str] = await Promise.all([
+    listAll(T_ASSIGN, 'pageSize=100&' + fields),
+    listAll(T_ASSIGN, 'pageSize=100&' + fields + '&cellFormat=string&timeZone=America%2FNew_York&userLocale=en-us')
+  ]);
+  const calName = new Map(str.map(r => [r.id, String(r.fields['Calendar Type'] || '').split(',')[0].trim()]));
+  const out = {};
+  raw.forEach(r => {
+    const evId = (r.fields['Event'] || [])[0];
+    if (!want.has(evId)) return;
+    (out[evId] = out[evId] || []).push({
+      id: r.id,
+      staffId: (r.fields['Staff Member'] || [])[0] || '',
+      calendarType: calName.get(r.id) || '',
+      from: flat(r.fields['Start Time']),
+      till: flat(r.fields['End Time']),
+      created: r.createdTime
+    });
+  });
+  Object.values(out).forEach(list => list.sort((a, b) => a.created.localeCompare(b.created)));
+  return out;
+}
+
+async function updateAssignments(updates) {
+  const records = updates.map(u => ({
+    id: u.id,
+    fields: {
+      'Staff Member': u.staffRecordId ? [u.staffRecordId] : undefined,
+      'Calendar Type': u.calendarType ? [u.calendarType] : undefined,
+      'Start Time': u.from,
+      'End Time': u.till,
+      'Duration': Math.round((u.minutes / 60) * 100) / 100
+    }
+  }));
+  const updated = [];
+  for (let i = 0; i < records.length; i += 10) {
+    const res = await at(api(T_ASSIGN), { method: 'PATCH', body: JSON.stringify({ records: records.slice(i, i + 10), typecast: true }) });
+    updated.push(...res.records.map(r => r.id));
+  }
+  return { updated };
+}
+
+async function deleteAssignments(ids) {
+  const deleted = [];
+  for (let i = 0; i < ids.length; i += 10) {
+    const qs = ids.slice(i, i + 10).map(id => 'records%5B%5D=' + encodeURIComponent(id)).join('&');
+    const res = await at(api(T_ASSIGN, qs), { method: 'DELETE' });
+    deleted.push(...res.records.map(r => r.id));
+  }
+  return { deleted };
+}
+
 async function createAssignments(payload) {
   const { eventId, assignments } = payload;
   if (!eventId) throw Object.assign(new Error('eventId is required'), { status: 400 });
@@ -192,8 +250,19 @@ exports.handler = async (event) => {
 
   try {
     const resource = (event.queryStringParameters || {}).resource;
-    if (event.httpMethod === 'GET' && resource === 'events')
-      return { statusCode: 200, headers, body: JSON.stringify({ events: await getEvents() }) };
+    if (event.httpMethod === 'GET' && resource === 'events') {
+      const events = await getEvents();
+      const byEvent = await getAssignments(events.map(e => e.id));
+      events.forEach(e => { e.assignments = byEvent[e.id] || []; });
+      return { statusCode: 200, headers, body: JSON.stringify({ events }) };
+    }
+    if (event.httpMethod === 'DELETE') {
+      const ids = String((event.queryStringParameters || {}).ids || '').split(',').filter(Boolean);
+      if (!ids.length) return { statusCode: 400, headers, body: JSON.stringify({ error: 'ids is required' }) };
+      return { statusCode: 200, headers, body: JSON.stringify(await deleteAssignments(ids)) };
+    }
+    if (event.httpMethod === 'PATCH' && resource === 'assignments')
+      return { statusCode: 200, headers, body: JSON.stringify(await updateAssignments(JSON.parse(event.body || '{}').updates || [])) };
     if (event.httpMethod === 'GET' && resource === 'staff')
       return { statusCode: 200, headers, body: JSON.stringify({ staff: await getStaff() }) };
     if (event.httpMethod === 'PATCH')
