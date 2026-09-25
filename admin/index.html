@@ -64,8 +64,28 @@ let EVENTS = [];
 let STAFF = [];
 
 const state = {
-  events: [], query: '', modalId: null, rows: [], loading: true, error: null
+  events: [], query: '', modalId: null, rows: [], loading: true, error: null, busy: false
 };
+const INVITED = new Set(); // assignment record ids invited during this session
+
+function parseTime(s) {
+  const m = String(s || '').trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/i);
+  if (!m) return null;
+  let h = +m[1], ap = m[3] ? m[3].toLowerCase() : (h >= 12 ? 'pm' : 'am');
+  if (!m[3]) h = h % 12 || 12;
+  return { h, m: +m[2], ap };
+}
+function fromAirtable(a) {
+  const p = STAFF.find(s => s.id === a.staffId);
+  return {
+    id: a.id, staffId: a.staffId,
+    name: p ? p.name : 'Unknown staff record', email: p ? p.email : '',
+    from: parseTime(a.from) || { h: 12, m: 0, ap: 'pm' },
+    till: parseTime(a.till) || { h: 12, m: 0, ap: 'pm' },
+    cal: a.calendarType || CAL_TYPES[0],
+    invited: INVITED.has(a.id)
+  };
+}
 
 async function getJSON(url, init) {
   const res = await fetch(url, init);
@@ -77,8 +97,9 @@ async function getJSON(url, init) {
   return data;
 }
 
-async function loadData() {
-  state.loading = true; state.error = null; render();
+async function loadData(opts) {
+  const silent = opts && opts.silent;
+  if (!silent) { state.loading = true; state.error = null; render(); }
   try {
     const [ev, st] = await Promise.all([
       getJSON(API + '?resource=events'),
@@ -86,8 +107,21 @@ async function loadData() {
     ]);
     EVENTS = ev.events || [];
     STAFF = st.staff || [];
-    state.events = EVENTS.map(e => ({ ...e, assignments: [], open: false, briefOriginal: e.brief || '', briefDirty: false }));
+    const prev = new Map(state.events.map(e => [e.id, e]));
+    state.events = EVENTS.map(e => {
+      const old = prev.get(e.id);
+      const keep = old && old.briefDirty;
+      return {
+        ...e,
+        assignments: (e.assignments || []).map(fromAirtable),
+        open: old ? old.open : false,
+        brief: keep ? old.brief : e.brief,
+        briefOriginal: e.brief || '',
+        briefDirty: !!keep
+      };
+    });
   } catch (err) {
+    if (silent) { console.error('[airtable-refresh]', err); return; }
     state.error = err.message;
     console.error('[airtable]', err);
   }
@@ -232,13 +266,22 @@ function render() {
             <div style="font-size:13px;font-weight:600;font-family:'DM Mono',monospace;color:#0d7186">${fmtTime(a.from)} – ${fmtTime(a.till)}</div>
             <div style="font-size:12px;color:#6b7c7e;font-variant-numeric:tabular-nums">${fmtDur(span(a))}</div>
             <div class="pill" style="font-size:11px;border-radius:4px;background:#eef2f7;color:#4a5b73">${esc(a.cal)}</div>
-            <div style="font-size:12px;color:${a.invited ? '#3f8f5f' : '#9a6234'};font-weight:500">${a.invited ? '✓ Invite sent' : 'Pending'}</div>
+            <div style="font-size:12px;color:${a.invited || a.id ? '#3f8f5f' : '#9a6234'};font-weight:500">${a.invited ? '✓ Invite sent' : a.id ? '✓ In Airtable' : 'Pending'}</div>
             <button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:#a05252;border-color:#e4dada">Remove</button>
           </div>`);
-          r.querySelector('button').onclick = () => {
-            e.assignments.splice(i, 1);
-            toast(a.name + ' removed from this event.');
-            render();
+          r.querySelector('button').onclick = async () => {
+            const btn = r.querySelector('button');
+            btn.disabled = true; btn.textContent = 'Removing…';
+            try {
+              if (a.id) await getJSON(API + '?ids=' + encodeURIComponent(a.id), { method: 'DELETE' });
+              e.assignments = e.assignments.filter(x => x !== a);
+              toast(a.name + ' removed from this event in Airtable.');
+              render();
+            } catch (err) {
+              btn.disabled = false; btn.textContent = 'Remove';
+              toast('Airtable delete failed: ' + err.message);
+              console.error('[airtable-delete]', err);
+            }
           };
           block.appendChild(r);
         });
@@ -255,7 +298,7 @@ function openModal(id) {
   const ev = state.events.find(e => e.id === id);
   state.modalId = id;
   state.rows = ev.assignments.length
-    ? ev.assignments.map(a => ({ staffId: a.staffId, from: { ...a.from }, till: { ...a.till }, cal: a.cal }))
+    ? ev.assignments.map(a => ({ id: a.id, staffId: a.staffId, from: { ...a.from }, till: { ...a.till }, cal: a.cal }))
     : [newRow()];
   renderModal();
 }
@@ -348,39 +391,49 @@ function renderModal() {
 
 async function confirmAssign() {
   const ev = state.events.find(e => e.id === state.modalId);
-  const assignments = state.rows.filter(r => r.staffId).map(r => {
+  const prev = ev.assignments;
+  const next = state.rows.filter(r => r.staffId).map(r => {
     const p = STAFF.find(s => s.id === r.staffId);
-    return { staffId: p.id, name: p.name, email: p.email, from: { ...r.from }, till: { ...r.till }, cal: r.cal, invited: false };
+    return { id: r.id || '', staffId: p.id, name: p.name, email: p.email, from: { ...r.from }, till: { ...r.till }, cal: r.cal, invited: false };
   });
-  ev.assignments = assignments;
+  const same = (a, b) => a.staffId === b.staffId && a.cal === b.cal && fmtTime(a.from) === fmtTime(b.from) && fmtTime(a.till) === fmtTime(b.till);
+  const removed = prev.filter(p => p.id && !next.some(n => n.id === p.id));
+  const created = next.filter(n => !n.id);
+  const changed = next.filter(n => n.id && !same(n, prev.find(p => p.id === n.id) || {}));
+  next.forEach(n => { const p = prev.find(x => x.id === n.id); if (p && !changed.includes(n)) n.invited = p.invited; });
   closeModal();
+  if (!removed.length && !created.length && !changed.length) { toast('No changes.'); return; }
+  ev.assignments = next;
   render();
-  if (!assignments.length) { toast('All staff removed from this event.'); return; }
 
+  const toFields = a => ({ staffRecordId: a.staffId, email: a.email, from: fmtTime(a.from), till: fmtTime(a.till), minutes: span(a), calendarType: a.cal });
   toast('Saving assignments to Airtable…');
   try {
-    const saved = await getJSON(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        eventId: ev.id,
-        assignments: assignments.map(a => ({
-          staffRecordId: a.staffId,
-          email: a.email,
-          from: fmtTime(a.from),
-          till: fmtTime(a.till),
-          minutes: span(a),
-          calendarType: a.cal
-        }))
-      })
-    });
-    if (saved.unmatched && saved.unmatched.length) toast('No staff record found for: ' + saved.unmatched.join(', '));
+    if (removed.length)
+      await getJSON(API + '?ids=' + encodeURIComponent(removed.map(a => a.id).join(',')), { method: 'DELETE' });
+    if (changed.length)
+      await getJSON(API + '?resource=assignments', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates: changed.map(a => ({ id: a.id, ...toFields(a) })) })
+      });
+    if (created.length) {
+      const saved = await getJSON(API, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId: ev.id, assignments: created.map(toFields) })
+      });
+      (saved.created || []).forEach((id, i) => { if (created[i]) created[i].id = id; });
+      if (saved.unmatched && saved.unmatched.length) toast('No staff record found for: ' + saved.unmatched.join(', '));
+    }
   } catch (err) {
     toast('Airtable save failed: ' + err.message);
     console.error('[airtable-save]', err);
+    loadData({ silent: true });
     return;
   }
 
+  // Invites only go to staff who are new or whose time / calendar changed.
+  const assignments = [...created, ...changed];
+  if (!assignments.length) { toast('Saved to Airtable.'); render(); return; }
   toast('Sending Google Calendar invites…');
   try {
     const res = await fetch('/.netlify/functions/send-invite', {
@@ -403,7 +456,7 @@ async function confirmAssign() {
     try { data = JSON.parse(raw); } catch (_) {}
     if (res.status === 404) throw new Error('invite endpoint not available (only works on the deployed Netlify site)');
     if (!res.ok) throw new Error(res.status + ' ' + (data.error || raw.slice(0, 200) || res.statusText));
-    ev.assignments.forEach(a => { a.invited = true; });
+    assignments.forEach(a => { a.invited = true; if (a.id) INVITED.add(a.id); });
     render();
     const nEv = (data.events || []).length;
     toast('Invites sent \u00b7 ' + (nEv > 1 ? nEv + ' calendar events \u00b7 ' : '') + (data.invited || assignments.map(a => a.email)).join(', '));
@@ -415,6 +468,10 @@ async function confirmAssign() {
 }
 
 document.getElementById('search').oninput = e => { state.query = e.target.value; render(); };
+// Re-read Airtable whenever the tab comes back into focus, so the page mirrors the base.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && !state.modalId && !state.loading) loadData({ silent: true });
+});
 loadData();
 </script>
 </body>
