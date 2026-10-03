@@ -414,7 +414,10 @@ async function confirmAssign() {
     if (changed.length)
       await getJSON(API + '?resource=assignments', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ updates: changed.map(a => ({ id: a.id, ...toFields(a) })) })
+        body: JSON.stringify({ updates: changed.map(a => {
+          const before = prev.find(p => p.id === a.id);
+          return { id: a.id, ...toFields(a), hoursChanged: !!before && span(before) !== span(a) };
+        }) })
       });
     if (created.length) {
       const saved = await getJSON(API, {
