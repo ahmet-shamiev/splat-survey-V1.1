@@ -184,7 +184,9 @@ async function updateAssignments(updates) {
       'Calendar Type': u.calendarType ? [u.calendarType] : undefined,
       'Start Time': u.from,
       'End Time': u.till,
-      'Duration': Math.round((u.minutes / 60) * 100) / 100
+      'Duration': Math.round((u.minutes / 60) * 100) / 100,
+      // Raised only when the hours actually change; an Airtable automation reacts and clears it.
+      ...(u.hoursChanged ? { 'Hours Changed': true } : {})
     }
   }));
   const updated = [];
