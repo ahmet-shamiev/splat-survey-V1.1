@@ -83,6 +83,7 @@ function fromAirtable(a) {
     from: parseTime(a.from) || { h: 12, m: 0, ap: 'pm' },
     till: parseTime(a.till) || { h: 12, m: 0, ap: 'pm' },
     cal: a.calendarType || CAL_TYPES[0],
+    calEventId: a.calEventId || '',
     invited: INVITED.has(a.id)
   };
 }
@@ -277,6 +278,12 @@ function render() {
               e.assignments = e.assignments.filter(x => x !== a);
               toast(a.name + ' removed from this event in Airtable.');
               render();
+              try {
+                const keep = e.assignments.filter(x => x.id && x.cal === a.cal).map(x => keepItem(x));
+                const data = await syncCalendar(e, keep, [touchItem(a)]);
+                toast(data.notFound.length ? 'No calendar invite found for ' + a.name + '.' : a.name + ' taken off the calendar invite.');
+                if (data.errors.length) toast('Calendar: ' + data.errors.join(' | '));
+              } catch (err) { toast('Calendar update failed: ' + err.message); console.error('[calendar-sync]', err); }
             } catch (err) {
               btn.disabled = false; btn.textContent = 'Remove';
               toast('Airtable delete failed: ' + err.message);
@@ -323,12 +330,55 @@ function updateTotals() {
     : 'Nothing assigned yet';
 }
 
+const staffName = id => { const p = STAFF.find(s => s.id === id); return p ? p.name : 'Staff member'; };
+const fmtRange = a => fmtTime(a.from) + ' – ' + fmtTime(a.till);
+
+// Compares the modal rows with what's saved. Kinds:
+// new · retimed (hours changed) · swapped (different person) · moved (different calendar) · removed
+function diffRows(ev, rows) {
+  const prev = ev.assignments;
+  const d = { created: [], retimed: [], swapped: [], moved: [], removed: [], kind: new Map(), before: new Map() };
+  rows.forEach(r => {
+    if (!r.staffId) return;
+    const b = r.id && prev.find(p => p.id === r.id);
+    if (!b) { d.created.push(r); d.kind.set(r, 'new'); return; }
+    d.before.set(r, b);
+    const sameTime = fmtTime(b.from) === fmtTime(r.from) && fmtTime(b.till) === fmtTime(r.till);
+    const k = b.cal !== r.cal ? 'moved' : b.staffId !== r.staffId ? 'swapped' : !sameTime ? 'retimed' : null;
+    if (k) { d[k].push(r); d.kind.set(r, k); }
+  });
+  d.removed = prev.filter(p => p.id && !rows.some(r => r.id === p.id && r.staffId));
+  d.updates = d.retimed.length + d.swapped.length + d.removed.length;
+  d.invites = d.created.length + d.moved.length;
+  return d;
+}
+
+function changeNotes(d) {
+  const lines = [];
+  d.retimed.forEach(r => lines.push(esc(staffName(r.staffId)) + '’s existing invite moves to ' + fmtRange(r) + '.'));
+  d.swapped.forEach(r => lines.push(esc(staffName(d.before.get(r).staffId)) + ' is taken off the invite; ' + esc(staffName(r.staffId)) + ' is added (' + fmtRange(r) + ').'));
+  d.removed.forEach(b => lines.push(esc(b.name) + ' is taken off the invite.'));
+  d.moved.forEach(r => lines.push(esc(staffName(r.staffId)) + ' moves to ' + esc(r.cal) + ' and gets a new invite.'));
+  d.created.forEach(r => lines.push(esc(staffName(r.staffId)) + ' gets a new invite.'));
+  return lines;
+}
+
+function confirmLabel(d, hasSaved) {
+  if (d.updates && d.invites) return 'Update ' + d.updates + ' · Invite ' + d.invites;
+  if (d.invites) return 'Confirm &amp; send invites';
+  if (d.updates) return d.retimed.length && !d.swapped.length && !d.removed.length ? 'Update timing' : 'Save changes';
+  return hasSaved ? 'No changes' : 'Confirm';
+}
+
 function renderModal() {
   const ev = state.events.find(e => e.id === state.modalId);
   if (!ev) return;
   const chosen = state.rows.map(r => r.staffId).filter(Boolean);
   const totalMin = state.rows.filter(r => r.staffId).reduce((t, r) => t + span(r), 0);
   const n = chosen.length;
+  const d = diffRows(ev, state.rows);
+  const notes = changeNotes(d);
+  const dirty = d.updates + d.invites > 0;
 
   const mount = document.getElementById('modal-mount');
   mount.innerHTML = `<div class="backdrop"><div class="modal">
@@ -341,13 +391,13 @@ function renderModal() {
       <div class="row" style="padding-bottom:8px"><div class="lbl">Staff member</div><div class="lbl">From</div><div class="lbl">Till</div><div class="lbl">Calendar type</div><div></div></div>
       <div id="rows" style="display:flex;flex-direction:column;gap:10px"></div>
       <button id="addrow" style="margin-top:14px;cursor:pointer;border:1.5px solid #b7dde5;background:#fff;color:#0d7d94;font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;display:inline-flex;align-items:center;gap:8px"><span style="font-size:16px;line-height:1">+</span>Add another staff member</button>
-      <div style="margin-top:18px;background:#f2fafb;border:1px solid #d9eef2;border-radius:10px;padding:12px 14px;font-size:13px;color:#2c5c66;line-height:1.5">${n ? 'On confirm, a Google Calendar invite for this event is sent to ' + n + ' staff email' + (n === 1 ? '' : 's') + '.' : 'Pick a staff member to enable confirmation. Invites go out automatically on confirm.'}</div>
+      <div style="margin-top:18px;background:#f2fafb;border:1px solid #d9eef2;border-radius:10px;padding:12px 14px;font-size:13px;color:#2c5c66;line-height:1.6">${notes.length ? notes.join('<br>') : n ? 'No changes yet. Edit a time, swap or remove someone, or add staff.' : 'Pick a staff member to enable confirmation. Invites go out automatically on confirm.'}</div>
     </div>
     <div style="padding:16px 26px 22px;border-top:1px solid #eef3f3;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
       <div id="totals" style="font-size:13px;color:#6b7c7e">${n ? n + ' staff · ' + fmtDur(totalMin) + ' total' : 'Nothing assigned yet'}</div>
       <div style="display:flex;gap:10px">
         <button id="cancel" class="btn-ghost">Cancel</button>
-        <button id="confirm" class="btn" style="font-size:14px;padding:10px 20px;opacity:${n || ev.assignments.length ? 1 : 0.4}">${n ? 'Confirm &amp; send invites' : 'Confirm'}</button>
+        <button id="confirm" class="btn" style="font-size:14px;padding:10px 20px;opacity:${dirty ? 1 : 0.4}">${confirmLabel(d, ev.assignments.length > 0)}</button>
       </div>
     </div>
   </div></div>`;
@@ -370,6 +420,17 @@ function renderModal() {
       <button class="btn-ghost" style="width:34px;height:38px;padding:0;font-size:18px;color:#93a3a5">×</button>
     </div>`);
     if (bad) row.querySelectorAll('.tg').forEach(g => { g.style.borderColor = '#e3a08c'; });
+    const kind = d.kind.get(r), before = d.before.get(r);
+    if (kind === 'retimed' || kind === 'swapped') {
+      const tgs = row.querySelectorAll('.tg');
+      if (fmtTime(before.from) !== fmtTime(r.from)) { tgs[0].style.borderColor = '#e2a35c'; tgs[0].style.background = '#fff8ef'; }
+      if (fmtTime(before.till) !== fmtTime(r.till)) { tgs[1].style.borderColor = '#e2a35c'; tgs[1].style.background = '#fff8ef'; }
+    }
+    const marker = kind === 'new' ? ['#3f8f5f', 'New']
+      : kind === 'retimed' ? ['#9a6234', 'Edited · was ' + fmtRange(before) + ' (' + fmtDur(span(before)) + ')']
+      : kind === 'swapped' ? ['#9a6234', 'Replaces ' + esc(staffName(before.staffId))]
+      : kind === 'moved' ? ['#9a6234', 'Moving from ' + esc(before.cal)]
+      : null;
     row.querySelector('[data-staff]').onchange = ev2 => { r.staffId = ev2.target.value; renderModal(); };
     row.querySelector('[data-cal]').onchange = ev2 => { r.cal = ev2.target.value; };
     row.querySelectorAll('.tg select').forEach(s => {
@@ -380,43 +441,97 @@ function renderModal() {
       };
     });
     row.querySelector('button').onclick = () => { state.rows.splice(i, 1); renderModal(); };
-    rowsEl.appendChild(row);
+    const wrap = el('<div></div>');
+    wrap.appendChild(row);
+    if (marker) wrap.appendChild(el('<div style="font-size:12px;color:' + marker[0] + ';margin-top:6px">' + marker[1] + '</div>'));
+    rowsEl.appendChild(wrap);
   });
 
   updateTotals();
   mount.querySelector('#addrow').onclick = () => { state.rows.push(newRow()); renderModal(); };
   mount.querySelector('#cancel').onclick = closeModal;
-  mount.querySelector('#confirm').onclick = confirmAssign;
+  mount.querySelector('#confirm').onclick = () => { if (dirty) confirmAssign(); };
+}
+
+const inviteBase = ev => ({
+  title: ev.title,
+  date: ev.date,
+  brief: ev.brief || '',
+  guideUrl: ev.guideUrl || '',
+  guideTitle: 'Project guide — ' + ev.title,
+  location: ev.address && ev.address !== '[Not provided]' ? ev.address : ''
+});
+// keepItem: someone who stays on an event. `before` is their saved record (for the event ID / old email).
+const keepItem = (a, before) => ({
+  assignmentId: a.id, email: a.email, from: fmt24(a.from), till: fmt24(a.till), calendarType: a.cal,
+  eventId: (before || a).calEventId || '', lookupEmail: (before || a).email
+});
+const touchItem = b => ({ ref: b.id, calendarType: b.cal, eventId: b.calEventId || '', lookupEmail: b.email });
+
+async function inviteCall(payload) {
+  const res = await fetch('/.netlify/functions/send-invite', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  const raw = await res.text();
+  let data = {};
+  try { data = JSON.parse(raw); } catch (_) {}
+  if (res.status === 404) throw new Error('invite endpoint not available (only works on the deployed Netlify site)');
+  if (!res.ok) throw new Error(res.status + ' ' + (data.error || raw.slice(0, 200) || res.statusText));
+  return data;
+}
+async function syncCalendar(ev, keep, touch) {
+  const data = await inviteCall({ action: 'sync', ...inviteBase(ev), keep, touch });
+  return { resolved: {}, notFound: [], errors: [], updated: [], deleted: [], ...data };
+}
+// Stores Google event IDs on the assignment records so later edits can find the invite.
+async function saveEventIds(list) {
+  if (!list.length) return;
+  try {
+    await getJSON(API + '?resource=assignments', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates: list.map(a => ({ id: a.id, calEventId: a.calEventId })) })
+    });
+  } catch (err) {
+    console.error('[save-event-ids]', err);
+    toast('Couldn’t store calendar event IDs. Add a text field “Calendar Event ID” to Assignments.');
+  }
 }
 
 async function confirmAssign() {
   const ev = state.events.find(e => e.id === state.modalId);
   const prev = ev.assignments;
+  const d = diffRows(ev, state.rows);
+  if (!d.updates && !d.invites) { closeModal(); toast('No changes.'); return; }
+
+  // Build the new assignment list; keep the row ↔ item link so diff kinds carry over.
+  const item = new Map();
   const next = state.rows.filter(r => r.staffId).map(r => {
     const p = STAFF.find(s => s.id === r.staffId);
-    return { id: r.id || '', staffId: p.id, name: p.name, email: p.email, from: { ...r.from }, till: { ...r.till }, cal: r.cal, invited: false };
+    const b = d.before.get(r);
+    const a = { id: r.id || '', staffId: p.id, name: p.name, email: p.email, from: { ...r.from }, till: { ...r.till }, cal: r.cal,
+      calEventId: b && b.cal === r.cal ? b.calEventId : '', invited: !!(b && !d.kind.has(r) && b.invited) };
+    item.set(r, a);
+    return a;
   });
-  const same = (a, b) => a.staffId === b.staffId && a.cal === b.cal && fmtTime(a.from) === fmtTime(b.from) && fmtTime(a.till) === fmtTime(b.till);
-  const removed = prev.filter(p => p.id && !next.some(n => n.id === p.id));
-  const created = next.filter(n => !n.id);
-  const changed = next.filter(n => n.id && !same(n, prev.find(p => p.id === n.id) || {}));
-  next.forEach(n => { const p = prev.find(x => x.id === n.id); if (p && !changed.includes(n)) n.invited = p.invited; });
+  const pick = list => list.map(r => item.get(r));
+  const created = pick(d.created), retimed = pick(d.retimed), swapped = pick(d.swapped), moved = pick(d.moved);
+  const changed = [...retimed, ...swapped, ...moved];
+  const before = a => prev.find(p => p.id === a.id);
   closeModal();
-  if (!removed.length && !created.length && !changed.length) { toast('No changes.'); return; }
   ev.assignments = next;
   render();
 
   const toFields = a => ({ staffRecordId: a.staffId, email: a.email, from: fmtTime(a.from), till: fmtTime(a.till), minutes: span(a), calendarType: a.cal });
   toast('Saving assignments to Airtable…');
   try {
-    if (removed.length)
-      await getJSON(API + '?ids=' + encodeURIComponent(removed.map(a => a.id).join(',')), { method: 'DELETE' });
+    if (d.removed.length)
+      await getJSON(API + '?ids=' + encodeURIComponent(d.removed.map(a => a.id).join(',')), { method: 'DELETE' });
     if (changed.length)
       await getJSON(API + '?resource=assignments', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ updates: changed.map(a => {
-          const before = prev.find(p => p.id === a.id);
-          return { id: a.id, ...toFields(a), hoursChanged: !!before && span(before) !== span(a) };
+          const b = before(a);
+          return { id: a.id, ...toFields(a), hoursChanged: !!b && span(b) !== span(a), ...(moved.includes(a) ? { calEventId: '' } : {}) };
         }) })
       });
     if (created.length) {
@@ -434,40 +549,52 @@ async function confirmAssign() {
     return;
   }
 
-  // Invites only go to staff who are new or whose time / calendar changed.
-  const assignments = [...created, ...changed];
-  if (!assignments.length) { toast('Saved to Airtable.'); render(); return; }
-  toast('Sending Google Calendar invites…');
-  try {
-    const res = await fetch('/.netlify/functions/send-invite', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: ev.title,
-        date: ev.date,
-        brief: ev.brief || '',
-        guideUrl: ev.guideUrl || '',
-        guideTitle: 'Project guide — ' + ev.title,
-        location: ev.address && ev.address !== '[Not provided]' ? ev.address : '',
-        startTime: (() => { const m = Math.min(...assignments.map(a => to24(a.from))); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); })(),
-        durationMinutes: (Math.max(...assignments.map(a => to24(a.till))) - Math.min(...assignments.map(a => to24(a.from)))) || 120,
-        attendees: assignments.map(a => ({ email: a.email, from: fmt24(a.from), till: fmt24(a.till), minutes: span(a), calendarType: a.cal }))
-      })
-    });
-    const raw = await res.text();
-    let data = {};
-    try { data = JSON.parse(raw); } catch (_) {}
-    if (res.status === 404) throw new Error('invite endpoint not available (only works on the deployed Netlify site)');
-    if (!res.ok) throw new Error(res.status + ' ' + (data.error || raw.slice(0, 200) || res.statusText));
-    assignments.forEach(a => { a.invited = true; if (a.id) INVITED.add(a.id); });
-    render();
-    const nEv = (data.events || []).length;
-    toast('Invites sent \u00b7 ' + (nEv > 1 ? nEv + ' calendar events \u00b7 ' : '') + (data.invited || assignments.map(a => a.email)).join(', '));
-    if (data.errors && data.errors.length) toast('Some calendars failed: ' + data.errors.join(' | '));
-  } catch (err) {
-    toast('Invite failed: ' + err.message);
-    console.error('[send-invite]', err);
+  const idsBefore = new Map(next.map(a => [a, a.calEventId]));
+  const invites = [...created, ...moved];
+
+  // 1. Edit existing invites: hours changed, person swapped, removed, or moved off a calendar.
+  const touchedFrom = [...retimed, ...swapped, ...moved].map(a => touchItem(before(a))).concat(d.removed.map(touchItem));
+  if (touchedFrom.length) {
+    toast('Updating calendar invites…');
+    const cals = new Set(touchedFrom.map(t => t.calendarType));
+    const keep = next.filter(a => a.id && !invites.includes(a) && cals.has(a.cal)).map(a => keepItem(a, before(a)));
+    try {
+      const data = await syncCalendar(ev, keep, touchedFrom);
+      next.forEach(a => { if (data.resolved[a.id]) a.calEventId = data.resolved[a.id]; });
+      // Invites we couldn't find (made outside the app, or deleted in Google) fall back to a fresh invite.
+      [...retimed, ...swapped].forEach(a => { if (data.notFound.includes(a.id)) invites.push(a); });
+      const nUp = retimed.length + swapped.length - [...retimed, ...swapped].filter(a => invites.includes(a)).length;
+      if (nUp || d.removed.length) toast('Calendar updated' + (nUp ? ' · ' + nUp + ' timing change' + (nUp === 1 ? '' : 's') : '') + (d.removed.length ? ' · ' + d.removed.length + ' removed' : ''));
+      if (data.errors.length) toast('Calendar: ' + data.errors.join(' | '));
+    } catch (err) {
+      toast('Calendar update failed: ' + err.message);
+      console.error('[calendar-sync]', err);
+    }
   }
+
+  // 2. New invites: new staff, calendar-type moves, and any invite that couldn't be found.
+  if (invites.length) {
+    toast('Sending Google Calendar invites…');
+    try {
+      const data = await inviteCall({
+        ...inviteBase(ev),
+        startTime: (() => { const m = Math.min(...invites.map(a => to24(a.from))); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); })(),
+        durationMinutes: (Math.max(...invites.map(a => to24(a.till))) - Math.min(...invites.map(a => to24(a.from)))) || 120,
+        attendees: invites.map(a => ({ email: a.email, from: fmt24(a.from), till: fmt24(a.till), minutes: span(a), calendarType: a.cal }))
+      });
+      const byType = new Map((data.events || []).map(e => [e.calendarType, e.eventId]));
+      invites.forEach(a => { if (byType.has(a.cal)) { a.calEventId = byType.get(a.cal); a.invited = true; if (a.id) INVITED.add(a.id); } });
+      const nEv = (data.events || []).length;
+      toast('Invites sent \u00b7 ' + (nEv > 1 ? nEv + ' calendar events \u00b7 ' : '') + (data.invited || invites.map(a => a.email)).join(', '));
+      if (data.errors && data.errors.length) toast('Some calendars failed: ' + data.errors.join(' | '));
+    } catch (err) {
+      toast('Invite failed: ' + err.message);
+      console.error('[send-invite]', err);
+    }
+  }
+  [...retimed, ...swapped].forEach(a => { if (!invites.includes(a)) { a.invited = true; INVITED.add(a.id); } });
+  render();
+  await saveEventIds(next.filter(a => a.id && a.calEventId && a.calEventId !== idsBefore.get(a)));
 }
 
 document.getElementById('search').oninput = e => { state.query = e.target.value; render(); };
