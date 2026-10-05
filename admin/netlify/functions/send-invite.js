@@ -130,10 +130,111 @@ exports.handler = async (event) => {
     return [{ fileUrl: url, title: title || 'Project guide' }];
   };
 
+  // Shift window for a group of people: earliest from → latest till.
+  const windowFor = (people, body) => {
+    const mins = people.map(p => toMin(p.from)).filter(m => m !== null);
+    const maxs = people.map(p => toMin(p.till)).filter(m => m !== null);
+    const startMin = mins.length ? Math.min(...mins) : null;
+    const endMin = maxs.length ? Math.max(...maxs) : null;
+    const startTime = startMin !== null ? hhmm(startMin) : (body.startTime || '09:00');
+    const start = (body.date || '') + 'T' + startTime + ':00';
+    const dur = startMin !== null && endMin !== null && endMin > startMin ? endMin - startMin : (body.durationMinutes || 120);
+    const endDate = new Date(start + 'Z');
+    endDate.setUTCMinutes(endDate.getUTCMinutes() + dur);
+    return { startTime, start, end: endDate.toISOString().slice(0, 19) };
+  };
+  const describe = (w, body) => {
+    const shift = `<b>Shift:</b> ${w.startTime}–${w.end.slice(11, 16)} (New York time)`;
+    const guide = body.guideUrl ? `<a href="${escHtml(body.guideUrl)}"><b>Glance</b></a>` : '';
+    const brief = briefToHtml(body.brief);
+    return [brief, brief ? '<br>' : '', shift, guide].filter(Boolean).join('<br>');
+  };
+
   try {
+    const reqBody = JSON.parse(event.body || '{}');
+
+    // action: 'sync' — edit existing calendar events instead of sending new ones.
+    //   keep:  every assignment that should stay on its event
+    //          [{ assignmentId, email, from, till, calendarType, eventId?, lookupEmail? }]
+    //   touch: events that need rewriting (hours changed, staff swapped, someone removed)
+    //          [{ ref, calendarType, eventId?, lookupEmail? }]
+    // Missing event IDs (assignments made before IDs were stored) are found by
+    // looking for an event on that day with the same title and attendee.
+    // An event left with no attendees is deleted; guests get Google's update/cancel email.
+    if (reqBody.action === 'sync') {
+      const body = reqBody;
+      const token = await getAccessToken();
+      const tz = body.timeZone || 'America/New_York';
+      const title = body.title || 'SplatLab event';
+      const gcal = async (calId, path, opts = {}) => {
+        const r = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events${path}`,
+          { ...opts, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' } });
+        const d = r.status === 204 ? {} : await r.json().catch(() => ({}));
+        if (!r.ok && r.status !== 410) throw new Error((d.error && d.error.message) || r.status + ' Calendar API error');
+        return d;
+      };
+      const dayCache = new Map();
+      const dayEvents = calId => {
+        if (!dayCache.has(calId)) {
+          const mid = new Date((body.date || '') + 'T12:00:00Z');
+          const min = new Date(+mid - 36 * 36e5).toISOString(), max = new Date(+mid + 36 * 36e5).toISOString();
+          dayCache.set(calId, gcal(calId, `?singleEvents=true&maxResults=250&timeMin=${encodeURIComponent(min)}&timeMax=${encodeURIComponent(max)}`).then(x => x.items || []));
+        }
+        return dayCache.get(calId);
+      };
+      const resolve = async item => {
+        const calId = calendarIdFor(item.calendarType);
+        if (item.eventId) return { calId, eventId: item.eventId };
+        if (!item.lookupEmail) return null;
+        const email = item.lookupEmail.toLowerCase();
+        const hit = (await dayEvents(calId)).find(e => e.status !== 'cancelled' && e.summary === title &&
+          (e.attendees || []).some(a => (a.email || '').toLowerCase() === email));
+        return hit ? { calId, eventId: hit.id } : null;
+      };
+
+      const keep = body.keep || [], touch = body.touch || [];
+      const errors = [], notFound = [], updated = [], deleted = [];
+      const keepAt = await Promise.all(keep.map(k => resolve(k).catch(() => null)));
+      const targets = new Map();
+      for (const t of touch) {
+        let r = null;
+        try { r = await resolve(t); } catch (e) { errors.push(e.message); }
+        if (r) targets.set(r.eventId, r.calId); else notFound.push(t.ref);
+      }
+      const resolved = {};
+      keep.forEach((k, i) => { if (keepAt[i] && k.assignmentId) resolved[k.assignmentId] = keepAt[i].eventId; });
+
+      for (const [eventId, calId] of targets) {
+        const people = keep.filter((k, i) => keepAt[i] && keepAt[i].eventId === eventId);
+        try {
+          if (!people.length) {
+            await gcal(calId, `/${encodeURIComponent(eventId)}?sendUpdates=all`, { method: 'DELETE' });
+            deleted.push(eventId);
+            continue;
+          }
+          // Keep existing attendee objects (RSVP status) for people who stay.
+          const current = await gcal(calId, `/${encodeURIComponent(eventId)}`);
+          const had = new Map((current.attendees || []).map(a => [(a.email || '').toLowerCase(), a]));
+          const emails = [...new Set(people.map(p => p.email.toLowerCase()))];
+          const w = windowFor(people, body);
+          await gcal(calId, `/${encodeURIComponent(eventId)}?sendUpdates=all&supportsAttachments=true`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+              description: describe(w, body),
+              start: { dateTime: w.start, timeZone: tz },
+              end: { dateTime: w.end, timeZone: tz },
+              attendees: emails.map(e => had.get(e) || { email: e })
+            })
+          });
+          updated.push({ eventId, attendees: emails });
+        } catch (e) { errors.push(e.message); }
+      }
+      return { statusCode: 200, body: JSON.stringify({ ok: true, resolved, updated, deleted, notFound, errors }) };
+    }
+
     // { title, date: 'YYYY-MM-DD', location, startTime: 'HH:MM', durationMinutes,
     //   attendees: [{ email, from, till, minutes, calendarType }] with from/till as 'HH:MM' }
-    const body = JSON.parse(event.body || '{}');
+    const body = reqBody;
     const attendees = (body.attendees || []).filter(a => a.email);
     if (!attendees.length) return { statusCode: 400, body: JSON.stringify({ error: 'No attendees' }) };
 
@@ -160,26 +261,9 @@ exports.handler = async (event) => {
         errors.push((type || 'no calendar type') + ': ' + e.message);
         continue;
       }
-      const mins = people.map(p => toMin(p.from)).filter(m => m !== null);
-      const maxs = people.map(p => toMin(p.till)).filter(m => m !== null);
-      const startMin = mins.length ? Math.min(...mins) : null;
-      const endMin = maxs.length ? Math.max(...maxs) : null;
-
-      const startTime = startMin !== null ? hhmm(startMin) : (body.startTime || '09:00');
-      const start = (body.date || '') + 'T' + startTime + ':00';
-      const dur = startMin !== null && endMin !== null && endMin > startMin
-        ? endMin - startMin
-        : (body.durationMinutes || 120);
-      const endDate = new Date(start + 'Z');
-      endDate.setUTCMinutes(endDate.getUTCMinutes() + dur);
-      const end = endDate.toISOString().slice(0, 19);
-
-      const shift = `<b>Shift:</b> ${startTime}–${end.slice(11, 16)} (New York time)`;
-      const guide = body.guideUrl
-        ? `<a href="${escHtml(body.guideUrl)}"><b>PROJECT GUIDE</b></a>`
-        : '';
-      const brief = briefToHtml(body.brief);
-      const description = [brief, brief ? '<br>' : '', shift, guide].filter(Boolean).join('<br>');
+      const w = windowFor(people, body);
+      const start = w.start, end = w.end;
+      const description = describe(w, body);
       const attachments = driveAttachment(body.guideUrl, body.guideTitle);
 
       const res = await fetch(

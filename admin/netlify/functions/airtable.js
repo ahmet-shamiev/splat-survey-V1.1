@@ -152,11 +152,10 @@ async function updateEventBrief(payload) {
 async function getAssignments(eventIds) {
   const want = new Set(eventIds);
   if (!want.size) return {};
-  const fields = ['Event', 'Staff Member', 'Calendar Type', 'Start Time', 'End Time']
-    .map(n => 'fields%5B%5D=' + encodeURIComponent(n)).join('&');
+  // No field filter: optional fields (Calendar Event ID) may not exist yet in every base.
   const [raw, str] = await Promise.all([
-    listAll(T_ASSIGN, 'pageSize=100&' + fields),
-    listAll(T_ASSIGN, 'pageSize=100&' + fields + '&cellFormat=string&timeZone=America%2FNew_York&userLocale=en-us')
+    listAll(T_ASSIGN, 'pageSize=100'),
+    listAll(T_ASSIGN, 'pageSize=100&cellFormat=string&timeZone=America%2FNew_York&userLocale=en-us')
   ]);
   const calName = new Map(str.map(r => [r.id, String(r.fields['Calendar Type'] || '').split(',')[0].trim()]));
   const out = {};
@@ -169,6 +168,7 @@ async function getAssignments(eventIds) {
       calendarType: calName.get(r.id) || '',
       from: flat(r.fields['Start Time']),
       till: flat(r.fields['End Time']),
+      calEventId: flat(r.fields['Calendar Event ID']) || '',
       created: r.createdTime
     });
   });
@@ -177,18 +177,19 @@ async function getAssignments(eventIds) {
 }
 
 async function updateAssignments(updates) {
-  const records = updates.map(u => ({
-    id: u.id,
-    fields: {
-      'Staff Member': u.staffRecordId ? [u.staffRecordId] : undefined,
-      'Calendar Type': u.calendarType ? [u.calendarType] : undefined,
-      'Start Time': u.from,
-      'End Time': u.till,
-      'Duration': Math.round((u.minutes / 60) * 100) / 100,
-      // Raised only when the hours actually change; an Airtable automation reacts and clears it.
-      ...(u.hoursChanged ? { 'Hours Changed': true } : {})
-    }
-  }));
+  // Only the keys present on each update are written.
+  const records = updates.map(u => {
+    const f = {};
+    if (u.staffRecordId) f['Staff Member'] = [u.staffRecordId];
+    if (u.calendarType) f['Calendar Type'] = [u.calendarType];
+    if (u.from !== undefined) f['Start Time'] = u.from;
+    if (u.till !== undefined) f['End Time'] = u.till;
+    if (u.minutes != null) f['Duration'] = Math.round((u.minutes / 60) * 100) / 100;
+    // Raised only when the hours actually change; an Airtable automation reacts and clears it.
+    if (u.hoursChanged) f['Hours Changed'] = true;
+    if ('calEventId' in u) f['Calendar Event ID'] = u.calEventId || '';
+    return { id: u.id, fields: f };
+  });
   const updated = [];
   for (let i = 0; i < records.length; i += 10) {
     const res = await at(api(T_ASSIGN), { method: 'PATCH', body: JSON.stringify({ records: records.slice(i, i + 10), typecast: true }) });
