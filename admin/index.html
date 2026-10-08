@@ -17,7 +17,7 @@
   .wrap { max-width:1180px; margin:0 auto; padding:28px 24px 96px; }
   .card { background:#fff; border:1px solid #e2eaea; border-radius:12px; padding:18px 20px; display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; }
   .pill { font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; }
-  .btn { cursor:pointer; border:none; background:#0d7d94; color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; }
+  .btn { white-space:nowrap; cursor:pointer; border:none; background:#0d7d94; color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; }
   .btn:hover { background:#0a6376; }
   .btn-ghost { cursor:pointer; border:1.5px solid #dde5e6; background:#fff; color:#4d6265; font-size:14px; font-weight:600; padding:10px 18px; border-radius:10px; }
   .inp { padding:10px 12px; font-size:14px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; color:#1e2a2c; outline:none; width:100%; }
@@ -50,7 +50,10 @@
       <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em">Events &amp; staffing</div>
       <div id="summary" style="font-size:13px;color:#6b7c7e;margin-top:4px">Loading…</div>
     </div>
-    <input id="search" class="inp" style="width:280px" placeholder="Search school, type or date…">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input id="search" class="inp" style="width:280px" placeholder="Search school, type, staff or date…">
+      <button id="new-office" class="btn" style="padding:11px 16px"><span style="font-size:16px;line-height:1">+</span>Office work</button>
+    </div>
   </div>
   <div id="list"></div>
 </div>
@@ -64,8 +67,11 @@ let EVENTS = [];
 let STAFF = [];
 
 const state = {
-  events: [], query: '', modalId: null, rows: [], loading: true, error: null, busy: false
+  events: [], query: '', modalId: null, rows: [], loading: true, error: null, busy: false,
+  office: [], officeError: null, officeModal: null
 };
+const OFFICE_TITLE = 'Office work';
+const OFFICE_CAL = 'OPS Calendar';
 const INVITED = new Set(); // assignment record ids invited during this session
 
 function parseTime(s) {
@@ -103,12 +109,16 @@ async function loadData(opts) {
   const silent = opts && opts.silent;
   if (!silent) { state.loading = true; state.error = null; render(); }
   try {
-    const [ev, st] = await Promise.all([
+    const [ev, st, of] = await Promise.all([
       getJSON(API + '?resource=events'),
-      getJSON(API + '?resource=staff')
+      getJSON(API + '?resource=staff'),
+      getJSON(API + '?resource=office').catch(err => ({ error: err.message }))
     ]);
     EVENTS = ev.events || [];
     STAFF = st.staff || [];
+    state.officeError = of.error || null;
+    if (of.error) console.error('[office]', of.error);
+    else state.office = (of.office || []).map(o => ({ ...fromAirtable(o), date: o.date, cal: OFFICE_CAL, description: o.description || '' }));
     const prev = new Map(state.events.map(e => [e.id, e]));
     state.events = EVENTS.map(e => {
       const old = prev.get(e.id);
@@ -159,7 +169,7 @@ function render() {
   const list = state.events.filter(e => !q || (e.title + ' ' + (e.type || '') + ' ' + e.address + ' ' + e.date).toLowerCase().includes(q));
 
   document.getElementById('summary').textContent =
-    state.events.length + ' active events · ' + state.events.reduce((t, e) => t + e.assignments.length, 0) + ' staff assignments';
+    state.events.length + ' active events · ' + state.events.reduce((t, e) => t + e.assignments.length, 0) + ' staff assignments · ' + state.office.length + ' office blocks';
 
   const groups = [];
   list.forEach(e => {
@@ -171,10 +181,12 @@ function render() {
 
   const root = document.getElementById('list');
   root.innerHTML = groups.length ? '' : '<div style="background:#fff;border:1px dashed #d5e0e1;border-radius:12px;padding:56px 20px;text-align:center;color:#93a3a5;font-size:14px">No events match this search.</div>';
+  const officeSec = renderOfficeSection(q);
+  if (officeSec) root.prepend(officeSec);
 
   groups.forEach(g => {
     const sec = el('<div style="margin-bottom:28px"></div>');
-    sec.appendChild(el('<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#6b7c7e">' + esc(g.label) + '</div><div style="flex:1;height:1px;background:#e2eaea"></div></div>'));
+    sec.appendChild(el('<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#6b7c7e;white-space:nowrap">' + esc(g.label) + '</div><div style="flex:1;height:1px;background:#e2eaea"></div></div>'));
     const stack = el('<div style="display:flex;flex-direction:column;gap:12px"></div>');
 
     g.events.forEach(e => {
@@ -614,10 +626,229 @@ async function confirmAssign() {
   await saveEventIds(next.filter(a => a.id && a.calEventId && a.calEventId !== idsBefore.get(a)));
 }
 
+// ---------- Office work (OPS only, no event) ----------
+function renderOfficeSection(q) {
+  const list = state.office.filter(o => !q || (o.name + ' ' + o.date + ' ' + fmtDate(o.date) + ' office').toLowerCase().includes(q));
+  if (!list.length && !state.officeError) return null;
+  const sec = el('<div style="margin-bottom:28px"></div>');
+  sec.appendChild(el('<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px"><div style="font-size:12px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#6b7c7e;white-space:nowrap">Office work · OPS Calendar</div><div style="flex:1;height:1px;background:#e2eaea"></div></div>'));
+  if (state.officeError) {
+    sec.appendChild(el('<div style="background:#fff;border:1px solid #f0d8d0;border-radius:12px;padding:14px 18px;font-size:13px;color:#a05252;line-height:1.5">Could not load office work: ' + esc(state.officeError) + '<br>Check that Assignments has a date field named “Office Date”.</div>'));
+    return sec;
+  }
+  const card = el('<div style="background:#fff;border:1px solid #e2eaea;border-radius:12px;overflow:hidden"></div>');
+  list.forEach((o, idx) => {
+    const r = el(`<div style="display:grid;grid-template-columns:150px minmax(0,1fr) 170px 80px auto;gap:16px;align-items:center;padding:12px 20px;${idx ? 'border-top:1px solid #eef3f3' : ''}">
+      <div style="font-size:13px;font-weight:600;color:#0d7d94;font-family:'DM Mono',monospace">${esc(fmtDate(o.date))}</div>
+      <div style="min-width:0"><div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.name)}</div><div style="font-size:12px;color:#6b7c7e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.description || o.email)}</div></div>
+      <div style="font-size:13px;font-family:'DM Mono',monospace;color:#3b4b4d">${esc(fmtTime(o.from))} – ${esc(fmtTime(o.till))}</div>
+      <div style="font-size:13px;color:#6b7c7e">${esc(fmtDur(span(o)))}</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button data-edit class="btn-ghost" style="font-size:12px;padding:7px 12px">Edit</button>
+        <button data-del class="btn-ghost" style="font-size:12px;padding:7px 12px">Remove</button>
+      </div>
+    </div>`);
+    r.querySelector('[data-edit]').onclick = () => openOffice(o);
+    r.querySelector('[data-del]').onclick = ev2 => removeOffice(o, ev2.currentTarget);
+    card.appendChild(r);
+  });
+  sec.appendChild(card);
+  return sec;
+}
+
+const todayISO = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+function openOffice(o) {
+  state.officeModal = o
+    ? { edit: o, date: o.date, from: { ...o.from }, till: { ...o.till }, staff: [o.staffId], description: o.description || '' }
+    : { edit: null, date: todayISO(), from: { h: 9, m: 0, ap: 'am' }, till: { h: 5, m: 0, ap: 'pm' }, staff: [''], description: '' };
+  renderOffice();
+}
+function closeOffice() { state.officeModal = null; document.getElementById('modal-mount').innerHTML = ''; }
+
+function officeDiff(m) {
+  const o = m.edit;
+  if (!o) return { label: 'Create & send invite' + (m.staff.filter(Boolean).length > 1 ? 's' : ''), dirty: true };
+  const timeCh = fmtTime(o.from) !== fmtTime(m.from) || fmtTime(o.till) !== fmtTime(m.till);
+  const other = o.date !== m.date || o.staffId !== m.staff[0] || (o.description || '') !== m.description.trim();
+  return { label: other ? 'Save changes' : timeCh ? 'Update timing' : 'No changes', dirty: timeCh || other, timeCh, other };
+}
+
+function renderOffice() {
+  const m = state.officeModal;
+  if (!m) return;
+  const chosen = m.staff.filter(Boolean);
+  const mins = Math.max(0, to24(m.till) - to24(m.from));
+  const d = officeDiff(m);
+  const valid = m.date && chosen.length && mins > 0;
+  const timeSel = key => `<div class="tg">
+      <select data-t="${key}" data-p="h" style="width:26px">${[12,1,2,3,4,5,6,7,8,9,10,11].map(h => '<option value="' + h + '"' + (+m[key].h === h ? ' selected' : '') + '>' + h + '</option>').join('')}</select>
+      <span class="sep">:</span>
+      <select data-t="${key}" data-p="m" style="width:26px">${[0,15,30,45].map(x => '<option value="' + x + '"' + (+m[key].m === x ? ' selected' : '') + '>' + String(x).padStart(2,'0') + '</option>').join('')}</select>
+      <select class="ap" data-t="${key}" data-p="ap" style="width:32px">${['am','pm'].map(a => '<option value="' + a + '"' + (m[key].ap === a ? ' selected' : '') + '>' + a + '</option>').join('')}</select>
+    </div>`;
+  const o = m.edit;
+  let note;
+  if (!o) note = chosen.length ? chosen.length + ' separate OPS Calendar invite' + (chosen.length === 1 ? '' : 's') + ' will be sent, one per staff member.' : 'Pick a staff member. Each person gets their own OPS Calendar invite.';
+  else if (!d.dirty) note = 'No changes yet.';
+  else if (o.staffId !== m.staff[0]) note = esc(o.name) + ' is taken off the invite; ' + esc(staffName(m.staff[0])) + ' is added.';
+  else if (o.date === m.date && fmtTime(o.from) === fmtTime(m.from) && fmtTime(o.till) === fmtTime(m.till)) note = esc(o.name) + '’s existing invite gets the new description. No new invite is sent.';
+  else note = esc(o.name) + '’s existing invite moves to ' + esc(m.date !== o.date ? fmtDate(m.date) + ', ' : '') + fmtTime(m.from) + ' – ' + fmtTime(m.till) + '. No new invite is sent.';
+
+  const mount = document.getElementById('modal-mount');
+  mount.innerHTML = `<div class="backdrop"><div class="modal" style="max-width:620px">
+    <div style="padding:22px 26px 16px;border-bottom:1px solid #eef3f3">
+      <div class="lbl" style="letter-spacing:0.1em;margin-bottom:6px">${o ? 'Edit office work' : 'New office work'}</div>
+      <div style="font-size:17px;font-weight:600;line-height:1.35">In-office assignment</div>
+      <div style="font-size:13px;color:#6b7c7e;margin-top:4px">OPS Calendar · not linked to an event</div>
+    </div>
+    <div style="padding:20px 26px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 140px 140px;gap:12px;align-items:end">
+        <div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">Date</div><input data-date type="date" class="inp" value="${esc(m.date)}" min="${todayISO()}"></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">From</div>${timeSel('from')}</div>
+        <div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">Till</div>${timeSel('till')}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="lbl">Assignment description · sent in the invite</div>
+        <textarea data-desc rows="4" placeholder="What needs to be done in the office, e.g. inventory count, kit prep for Oct 20 pop-up…" style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:13px;line-height:1.6;font-family:inherit;border:1.5px solid #dde5e6;border-radius:10px;background:#fff;color:#1e2a2c;outline:none;resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="lbl">Staff member${o ? '' : 's'}</div>
+        <div id="o-staff" style="display:flex;flex-direction:column;gap:8px"></div>
+        ${o ? '' : '<button id="o-add" style="align-self:flex-start;margin-top:4px;cursor:pointer;border:1.5px solid #b7dde5;background:#fff;color:#0d7d94;font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;display:inline-flex;align-items:center;gap:8px"><span style="font-size:16px;line-height:1">+</span>Add another staff member</button>'}
+      </div>
+      <div style="background:#f2fafb;border:1px solid #d9eef2;border-radius:10px;padding:12px 14px;font-size:13px;color:#2c5c66;line-height:1.6">${note}</div>
+    </div>
+    <div style="padding:16px 26px 22px;border-top:1px solid #eef3f3;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div style="font-size:13px;color:${mins > 0 ? '#6b7c7e' : '#a05252'}">${mins > 0 ? fmtDur(mins) + ' per person' : 'Till must be after From'}</div>
+      <div style="display:flex;gap:10px">
+        <button id="o-cancel" class="btn-ghost">Cancel</button>
+        <button id="o-ok" class="btn" style="font-size:14px;padding:10px 20px;opacity:${valid && d.dirty ? 1 : 0.4}">${d.label}</button>
+      </div>
+    </div>
+  </div></div>`;
+
+  const list = mount.querySelector('#o-staff');
+  m.staff.forEach((id, i) => {
+    const opts = STAFF.map(s2 => '<option value="' + s2.id + '"' + (s2.id === id ? ' selected' : '') + (chosen.includes(s2.id) && s2.id !== id ? ' disabled' : '') + '>' + esc(s2.name + ' — ' + s2.email) + '</option>').join('');
+    const row = el('<div style="display:grid;grid-template-columns:minmax(0,1fr)' + (o ? '' : ' 34px') + ';gap:10px"><select class="inp"><option value="">Select staff member…</option>' + opts + '</select>' + (o ? '' : '<button class="btn-ghost" style="width:34px;height:40px;padding:0;font-size:18px;color:#93a3a5">×</button>') + '</div>');
+    row.querySelector('select').onchange = e2 => { m.staff[i] = e2.target.value; renderOffice(); };
+    const x = row.querySelector('button');
+    if (x) x.onclick = () => { m.staff.splice(i, 1); if (!m.staff.length) m.staff.push(''); renderOffice(); };
+    list.appendChild(row);
+  });
+  const add = mount.querySelector('#o-add');
+  if (add) add.onclick = () => { m.staff.push(''); renderOffice(); };
+  mount.querySelector('[data-date]').onchange = e2 => { m.date = e2.target.value; renderOffice(); };
+  const ta = mount.querySelector('[data-desc]');
+  ta.value = m.description;
+  // Update only the button + note on typing, so the textarea keeps focus.
+  ta.oninput = () => {
+    m.description = ta.value;
+    const dd = officeDiff(m), ok = mount.querySelector('#o-ok');
+    ok.textContent = dd.label;
+    ok.style.opacity = valid && dd.dirty ? 1 : 0.4;
+    ok.onclick = () => { if (valid && officeDiff(m).dirty) (o ? saveOfficeEdit() : createOffice()); };
+  };
+  mount.querySelectorAll('.tg select').forEach(sel => {
+    sel.onchange = e2 => {
+      const v = e2.target.dataset.p === 'ap' ? e2.target.value : +e2.target.value;
+      m[e2.target.dataset.t][e2.target.dataset.p] = v;
+      renderOffice();
+    };
+  });
+  mount.querySelector('#o-cancel').onclick = closeOffice;
+  mount.querySelector('.backdrop').onclick = e2 => { if (e2.target.classList.contains('backdrop')) closeOffice(); };
+  mount.querySelector('#o-ok').onclick = () => { if (valid && d.dirty) (o ? saveOfficeEdit() : createOffice()); };
+}
+
+const officeInvite = (date, a) => inviteCall({
+  title: OFFICE_TITLE, date, brief: a.description || '', guideUrl: '', location: '',
+  startTime: fmt24(a.from), durationMinutes: span(a) || 60,
+  attendees: [{ email: a.email, from: fmt24(a.from), till: fmt24(a.till), minutes: span(a), calendarType: OFFICE_CAL }]
+});
+const officeSync = (date, keep, touch, brief) => inviteCall({ action: 'sync', title: OFFICE_TITLE, date, brief: brief || '', guideUrl: '', location: '', keep, touch })
+  .then(x => ({ resolved: {}, notFound: [], errors: [], ...x }));
+
+async function createOffice() {
+  const m = state.officeModal;
+  const people = m.staff.filter(Boolean).map(id => {
+    const p = STAFF.find(s2 => s2.id === id);
+    return { id: '', staffId: p.id, name: p.name, email: p.email, from: { ...m.from }, till: { ...m.till }, cal: OFFICE_CAL, date: m.date, calEventId: '', description: m.description.trim() };
+  });
+  closeOffice();
+  toast('Saving office work to Airtable…');
+  try {
+    const saved = await getJSON(API, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ office: true, date: m.date, description: m.description.trim(), assignments: people.map(a => ({ staffRecordId: a.staffId, from: fmtTime(a.from), till: fmtTime(a.till), minutes: span(a) })) })
+    });
+    (saved.created || []).forEach((id, k) => { if (people[k]) people[k].id = id; });
+  } catch (err) { toast('Airtable save failed: ' + err.message); console.error('[office-save]', err); return; }
+  state.office = [...state.office, ...people].sort((a, b) => (a.date + fmt24(a.from)).localeCompare(b.date + fmt24(b.from)));
+  render();
+  toast('Sending OPS Calendar invites…');
+  const errs = [];
+  for (const a of people) {
+    try {
+      const data = await officeInvite(m.date, a);
+      a.calEventId = ((data.events || [])[0] || {}).eventId || '';
+      INVITED.add(a.id);
+      if (data.errors && data.errors.length) errs.push(...data.errors);
+    } catch (err) { errs.push(a.name + ': ' + err.message); }
+  }
+  toast(errs.length ? 'Some invites failed: ' + errs.join(' | ') : 'Invites sent · ' + people.map(a => a.email).join(', '));
+  await saveEventIds(people.filter(a => a.id && a.calEventId));
+}
+
+async function saveOfficeEdit() {
+  const m = state.officeModal, o = m.edit, d = officeDiff(m);
+  const p = STAFF.find(s2 => s2.id === m.staff[0]);
+  const next = { ...o, staffId: p.id, name: p.name, email: p.email, from: { ...m.from }, till: { ...m.till }, date: m.date, description: m.description.trim() };
+  closeOffice();
+  toast('Saving to Airtable…');
+  try {
+    await getJSON(API + '?resource=assignments', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates: [{ id: o.id, staffRecordId: next.staffId, from: fmtTime(next.from), till: fmtTime(next.till), minutes: span(next), calendarType: OFFICE_CAL, date: next.date, description: next.description, hoursChanged: span(o) !== span(next) }] })
+    });
+  } catch (err) { toast('Airtable save failed: ' + err.message); console.error('[office-edit]', err); return; }
+  state.office = state.office.map(x => x === o ? next : x).sort((a, b) => (a.date + fmt24(a.from)).localeCompare(b.date + fmt24(b.from)));
+  render();
+  try {
+    const keep = [{ assignmentId: o.id, email: next.email, from: fmt24(next.from), till: fmt24(next.till), calendarType: OFFICE_CAL, eventId: o.calEventId || '', lookupEmail: o.email }];
+    const touch = [{ ref: o.id, calendarType: OFFICE_CAL, eventId: o.calEventId || '', lookupEmail: o.email }];
+    const data = await officeSync(next.date, keep, touch, next.description);
+    if (data.notFound.includes(o.id)) {
+      const inv = await officeInvite(next.date, next);
+      next.calEventId = ((inv.events || [])[0] || {}).eventId || '';
+      toast('No existing invite found, sent a new one.');
+    } else {
+      next.calEventId = data.resolved[o.id] || o.calEventId;
+      toast(data.errors.length ? 'Calendar: ' + data.errors.join(' | ') : d.other ? 'Saved · invite updated' : 'Timing updated · invite moved');
+    }
+    if (next.calEventId && next.calEventId !== o.calEventId) await saveEventIds([next]);
+  } catch (err) { toast('Calendar update failed: ' + err.message); console.error('[office-sync]', err); }
+}
+
+async function removeOffice(o, btn) {
+  btn.disabled = true; btn.textContent = 'Removing…';
+  try {
+    await getJSON(API + '?ids=' + encodeURIComponent(o.id), { method: 'DELETE' });
+  } catch (err) { btn.disabled = false; btn.textContent = 'Remove'; toast('Airtable delete failed: ' + err.message); return; }
+  state.office = state.office.filter(x => x !== o);
+  render();
+  try {
+    const data = await officeSync(o.date, [], [{ ref: o.id, calendarType: OFFICE_CAL, eventId: o.calEventId || '', lookupEmail: o.email }]);
+    toast(data.notFound.length ? o.name + ' removed. No calendar invite found to cancel.' : o.name + ' removed · invite cancelled');
+  } catch (err) { toast('Removed in Airtable, but calendar update failed: ' + err.message); }
+}
+
+document.getElementById('new-office').onclick = () => { if (!state.loading) openOffice(null); };
+
 document.getElementById('search').oninput = e => { state.query = e.target.value; render(); };
 // Re-read Airtable whenever the tab comes back into focus, so the page mirrors the base.
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && !state.modalId && !state.loading) loadData({ silent: true });
+  if (document.visibilityState === 'visible' && !state.modalId && !state.officeModal && !state.loading) loadData({ silent: true });
 });
 loadData();
 </script>
