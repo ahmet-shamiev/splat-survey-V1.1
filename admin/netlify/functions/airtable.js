@@ -157,6 +157,7 @@ async function getAssignments(eventIds) {
     listAll(T_ASSIGN, 'pageSize=100'),
     listAll(T_ASSIGN, 'pageSize=100&cellFormat=string&timeZone=America%2FNew_York&userLocale=en-us')
   ]);
+  const posName = new Map(str.map(r => [r.id, String(r.fields['Position'] || '').split(',')[0].trim()]));
   const calName = new Map(str.map(r => [r.id, String(r.fields['Calendar Type'] || '').split(',')[0].trim()]));
   const out = {};
   raw.forEach(r => {
@@ -166,6 +167,7 @@ async function getAssignments(eventIds) {
       id: r.id,
       staffId: (r.fields['Staff Member'] || [])[0] || '',
       calendarType: calName.get(r.id) || '',
+      position: posName.get(r.id) || '',
       from: flat(r.fields['Start Time']),
       till: flat(r.fields['End Time']),
       calEventId: flat(r.fields['Calendar Event ID']) || '',
@@ -182,6 +184,7 @@ async function updateAssignments(updates) {
     const f = {};
     if (u.staffRecordId) f['Staff Member'] = [u.staffRecordId];
     if (u.calendarType) f['Calendar Type'] = [u.calendarType];
+    if (u.position !== undefined) f['Position'] = u.position || null;
     if (u.from !== undefined) f['Start Time'] = u.from;
     if (u.till !== undefined) f['End Time'] = u.till;
     if (u.minutes != null) f['Duration'] = Math.round((u.minutes / 60) * 100) / 100;
@@ -283,6 +286,7 @@ async function createAssignments(payload) {
         // Linked-record field: typecast matches these names against the
         // calendar table's primary field (or creates them if absent).
         'Calendar Type': a.calendarType ? [a.calendarType] : undefined,
+        'Position': a.position || undefined,
         'Start Time': a.from,
         'End Time': a.till,
         'Duration': Math.round((a.minutes / 60) * 100) / 100
