@@ -150,6 +150,10 @@ exports.handler = async (event) => {
     return [brief, brief ? '<br>' : '', shift, guide].filter(Boolean).join('<br>');
   };
 
+  // Testing mode: prefix every calendar event title. Set TEST_MODE=false in Netlify to turn off.
+  const TEST_MODE = String(process.env.TEST_MODE ?? 'true').toLowerCase() !== 'false';
+  const eventTitle = t => (TEST_MODE ? 'Test ' : '') + (t || 'SplatLab event');
+
   try {
     const reqBody = JSON.parse(event.body || '{}');
 
@@ -165,7 +169,7 @@ exports.handler = async (event) => {
       const body = reqBody;
       const token = await getAccessToken();
       const tz = body.timeZone || 'America/New_York';
-      const title = body.title || 'SplatLab event';
+      const title = eventTitle(body.title);
       const gcal = async (calId, path, opts = {}) => {
         const r = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events${path}`,
           { ...opts, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' } });
@@ -187,7 +191,7 @@ exports.handler = async (event) => {
         if (item.eventId) return { calId, eventId: item.eventId };
         if (!item.lookupEmail) return null;
         const email = item.lookupEmail.toLowerCase();
-        const hit = (await dayEvents(calId)).find(e => e.status !== 'cancelled' && e.summary === title &&
+        const hit = (await dayEvents(calId)).find(e => e.status !== 'cancelled' && (e.summary === title || e.summary === (body.title || 'SplatLab event')) &&
           (e.attendees || []).some(a => (a.email || '').toLowerCase() === email));
         return hit ? { calId, eventId: hit.id } : null;
       };
@@ -272,7 +276,7 @@ exports.handler = async (event) => {
           method: 'POST',
           headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            summary: body.title || 'SplatLab event',
+            summary: eventTitle(body.title),
             location: body.location || '',
             description,
             ...(attachments ? { attachments } : {}),
