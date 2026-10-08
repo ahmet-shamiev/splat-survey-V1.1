@@ -21,14 +21,14 @@
   .btn:hover { background:#0a6376; }
   .btn-ghost { cursor:pointer; border:1.5px solid #dde5e6; background:#fff; color:#4d6265; font-size:14px; font-weight:600; padding:10px 18px; border-radius:10px; }
   .inp { padding:10px 12px; font-size:14px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; color:#1e2a2c; outline:none; width:100%; }
-  .row { display:grid; grid-template-columns:minmax(160px,1fr) 140px 140px 170px 34px; gap:12px; align-items:center; }
+  .row { display:grid; grid-template-columns:minmax(160px,1fr) 140px 140px 170px 96px 34px; gap:12px; align-items:center; }
   .tg { display:flex; align-items:center; gap:3px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; padding:3px 5px; }
   .tg select { border:none; background:transparent; outline:none; font-size:13px; font-family:'DM Mono',monospace; color:#1e2a2c; padding:5px 1px; cursor:pointer; -webkit-appearance:none; appearance:none; text-align:center; text-align-last:center; }
   .tg .sep { font-size:13px; color:#93a3a5; font-family:'DM Mono',monospace; }
   .tg .ap { font-family:'DM Sans',sans-serif; font-weight:600; color:#0d7186; margin-left:2px; }
   .tg:focus-within { border-color:#22b8cf; }
   .backdrop { position:fixed; inset:0; background:rgba(16,38,42,0.45); display:flex; align-items:center; justify-content:center; padding:24px; z-index:60; }
-  .modal { background:#fff; border-radius:14px; width:100%; max-width:780px; max-height:88vh; overflow:auto; box-shadow:0 24px 60px rgba(9,40,46,0.28); }
+  .modal { background:#fff; border-radius:14px; width:100%; max-width:900px; max-height:88vh; overflow:auto; box-shadow:0 24px 60px rgba(9,40,46,0.28); }
   .lbl { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#93a3a5; }
   .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:80; background:#10343b; color:#fff; padding:14px 20px; border-radius:12px; font-size:14px; box-shadow:0 12px 30px rgba(9,40,46,0.3); max-width:90vw; }
 </style>
@@ -83,6 +83,7 @@ function fromAirtable(a) {
     from: parseTime(a.from) || { h: 12, m: 0, ap: 'pm' },
     till: parseTime(a.till) || { h: 12, m: 0, ap: 'pm' },
     cal: a.calendarType || CAL_TYPES[0],
+    pos: normPos(a.position) || normPos(p && p.role),
     calEventId: a.calEventId || '',
     invited: INVITED.has(a.id)
   };
@@ -305,14 +306,20 @@ function openModal(id) {
   const ev = state.events.find(e => e.id === id);
   state.modalId = id;
   state.rows = ev.assignments.length
-    ? ev.assignments.map(a => ({ id: a.id, staffId: a.staffId, from: { ...a.from }, till: { ...a.till }, cal: a.cal }))
+    ? ev.assignments.map(a => ({ id: a.id, staffId: a.staffId, from: { ...a.from }, till: { ...a.till }, cal: a.cal, pos: a.pos || '' }))
     : [newRow()];
   renderModal();
 }
 function closeModal() { state.modalId = null; state.rows = []; document.getElementById('modal-mount').innerHTML = ''; }
 
 const CAL_TYPES = ['Special Events Calendar', 'OPS Calendar', 'After School Calendar', 'SDW Calendar'];
-const newRow = () => ({ staffId: '', from: { h: 10, m: 0, ap: 'am' }, till: { h: 1, m: 0, ap: 'pm' }, cal: CAL_TYPES[0] });
+const POSITIONS = ['Lead', 'MTA', 'TA', 'Intern'];
+// Matches Airtable's Position text to the list (case-insensitive); '' if no match.
+function normPos(v) {
+  const t = String(Array.isArray(v) ? v[0] || '' : v || '').trim().toLowerCase();
+  return POSITIONS.find(p => p.toLowerCase() === t) || '';
+}
+const newRow = () => ({ staffId: '', from: { h: 10, m: 0, ap: 'am' }, till: { h: 1, m: 0, ap: 'pm' }, cal: CAL_TYPES[0], pos: '' });
 const to24 = t => ((+t.h % 12) + (t.ap === 'pm' ? 12 : 0)) * 60 + (+t.m || 0);
 const span = r => Math.max(0, to24(r.till) - to24(r.from));
 const fmtTime = t => t.h + ':' + String(t.m).padStart(2, '0') + t.ap;
@@ -337,7 +344,7 @@ const fmtRange = a => fmtTime(a.from) + ' – ' + fmtTime(a.till);
 // new · retimed (hours changed) · swapped (different person) · moved (different calendar) · removed
 function diffRows(ev, rows) {
   const prev = ev.assignments;
-  const d = { created: [], retimed: [], swapped: [], moved: [], removed: [], kind: new Map(), before: new Map() };
+  const d = { created: [], retimed: [], swapped: [], moved: [], removed: [], repositioned: [], kind: new Map(), before: new Map() };
   rows.forEach(r => {
     if (!r.staffId) return;
     const b = r.id && prev.find(p => p.id === r.id);
@@ -346,9 +353,10 @@ function diffRows(ev, rows) {
     const sameTime = fmtTime(b.from) === fmtTime(r.from) && fmtTime(b.till) === fmtTime(r.till);
     const k = b.cal !== r.cal ? 'moved' : b.staffId !== r.staffId ? 'swapped' : !sameTime ? 'retimed' : null;
     if (k) { d[k].push(r); d.kind.set(r, k); }
+    else if ((b.pos || '') !== (r.pos || '')) { d.repositioned.push(r); d.kind.set(r, 'repositioned'); }
   });
   d.removed = prev.filter(p => p.id && !rows.some(r => r.id === p.id && r.staffId));
-  d.updates = d.retimed.length + d.swapped.length + d.removed.length;
+  d.updates = d.retimed.length + d.swapped.length + d.removed.length + d.repositioned.length;
   d.invites = d.created.length + d.moved.length;
   return d;
 }
@@ -360,13 +368,14 @@ function changeNotes(d) {
   d.removed.forEach(b => lines.push(esc(b.name) + ' is taken off the invite.'));
   d.moved.forEach(r => lines.push(esc(staffName(r.staffId)) + ' moves to ' + esc(r.cal) + ' and gets a new invite.'));
   d.created.forEach(r => lines.push(esc(staffName(r.staffId)) + ' gets a new invite.'));
+  d.repositioned.forEach(r => lines.push(esc(staffName(r.staffId)) + '’s position changes to ' + esc(r.pos || 'none') + '. Invite unchanged.'));
   return lines;
 }
 
 function confirmLabel(d, hasSaved) {
   if (d.updates && d.invites) return 'Update ' + d.updates + ' · Invite ' + d.invites;
   if (d.invites) return 'Confirm &amp; send invites';
-  if (d.updates) return d.retimed.length && !d.swapped.length && !d.removed.length ? 'Update timing' : 'Save changes';
+  if (d.updates) return d.retimed.length && !d.swapped.length && !d.removed.length && !d.repositioned.length ? 'Update timing' : 'Save changes';
   return hasSaved ? 'No changes' : 'Confirm';
 }
 
@@ -388,7 +397,7 @@ function renderModal() {
       <div style="font-size:13px;color:#6b7c7e;margin-top:4px">${esc(fmtDate(ev.date))} · ${esc(ev.type || 'Event')} · ${esc(ev.address || 'Location TBD')}</div>
     </div>
     <div style="padding:20px 26px">
-      <div class="row" style="padding-bottom:8px"><div class="lbl">Staff member</div><div class="lbl">From</div><div class="lbl">Till</div><div class="lbl">Calendar type</div><div></div></div>
+      <div class="row" style="padding-bottom:8px"><div class="lbl">Staff member</div><div class="lbl">From</div><div class="lbl">Till</div><div class="lbl">Calendar type</div><div class="lbl">Position</div><div></div></div>
       <div id="rows" style="display:flex;flex-direction:column;gap:10px"></div>
       <button id="addrow" style="margin-top:14px;cursor:pointer;border:1.5px solid #b7dde5;background:#fff;color:#0d7d94;font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;display:inline-flex;align-items:center;gap:8px"><span style="font-size:16px;line-height:1">+</span>Add another staff member</button>
       <div style="margin-top:18px;background:#f2fafb;border:1px solid #d9eef2;border-radius:10px;padding:12px 14px;font-size:13px;color:#2c5c66;line-height:1.6">${notes.length ? notes.join('<br>') : n ? 'No changes yet. Edit a time, swap or remove someone, or add staff.' : 'Pick a staff member to enable confirmation. Invites go out automatically on confirm.'}</div>
@@ -417,6 +426,7 @@ function renderModal() {
       ${timeGroup('from')}
       ${timeGroup('till')}
       <select class="inp" data-cal style="padding:10px 6px;font-size:12px">${CAL_TYPES.map(c => '<option value="' + c + '"' + (r.cal === c ? ' selected' : '') + '>' + c + '</option>').join('')}</select>
+      <select class="inp" data-pos style="padding:10px 6px;font-size:12px"${r.staffId ? '' : ' disabled'}><option value="">—</option>${POSITIONS.map(p => '<option value="' + p + '"' + (r.pos === p ? ' selected' : '') + '>' + p + '</option>').join('')}</select>
       <button class="btn-ghost" style="width:34px;height:38px;padding:0;font-size:18px;color:#93a3a5">×</button>
     </div>`);
     if (bad) row.querySelectorAll('.tg').forEach(g => { g.style.borderColor = '#e3a08c'; });
@@ -430,9 +440,16 @@ function renderModal() {
       : kind === 'retimed' ? ['#9a6234', 'Edited · was ' + fmtRange(before) + ' (' + fmtDur(span(before)) + ')']
       : kind === 'swapped' ? ['#9a6234', 'Replaces ' + esc(staffName(before.staffId))]
       : kind === 'moved' ? ['#9a6234', 'Moving from ' + esc(before.cal)]
+      : kind === 'repositioned' ? ['#9a6234', 'Position · was ' + esc(before.pos || 'none')]
       : null;
-    row.querySelector('[data-staff]').onchange = ev2 => { r.staffId = ev2.target.value; renderModal(); };
-    row.querySelector('[data-cal]').onchange = ev2 => { r.cal = ev2.target.value; };
+    row.querySelector('[data-staff]').onchange = ev2 => {
+      r.staffId = ev2.target.value;
+      const p = STAFF.find(s => s.id === r.staffId);
+      r.pos = normPos(p && p.role); // start from the Staff table's Position; admin can override
+      renderModal();
+    };
+    row.querySelector('[data-cal]').onchange = ev2 => { r.cal = ev2.target.value; renderModal(); };
+    row.querySelector('[data-pos]').onchange = ev2 => { r.pos = ev2.target.value; renderModal(); };
     row.querySelectorAll('.tg select').forEach(s => {
       s.onchange = ev2 => {
         const v = ev2.target.dataset.p === 'ap' ? ev2.target.value : +ev2.target.value;
@@ -508,20 +525,20 @@ async function confirmAssign() {
   const next = state.rows.filter(r => r.staffId).map(r => {
     const p = STAFF.find(s => s.id === r.staffId);
     const b = d.before.get(r);
-    const a = { id: r.id || '', staffId: p.id, name: p.name, email: p.email, from: { ...r.from }, till: { ...r.till }, cal: r.cal,
+    const a = { id: r.id || '', staffId: p.id, name: p.name, email: p.email, from: { ...r.from }, till: { ...r.till }, cal: r.cal, pos: r.pos || '',
       calEventId: b && b.cal === r.cal ? b.calEventId : '', invited: !!(b && !d.kind.has(r) && b.invited) };
     item.set(r, a);
     return a;
   });
   const pick = list => list.map(r => item.get(r));
   const created = pick(d.created), retimed = pick(d.retimed), swapped = pick(d.swapped), moved = pick(d.moved);
-  const changed = [...retimed, ...swapped, ...moved];
+  const changed = [...retimed, ...swapped, ...moved, ...pick(d.repositioned)];
   const before = a => prev.find(p => p.id === a.id);
   closeModal();
   ev.assignments = next;
   render();
 
-  const toFields = a => ({ staffRecordId: a.staffId, email: a.email, from: fmtTime(a.from), till: fmtTime(a.till), minutes: span(a), calendarType: a.cal });
+  const toFields = a => ({ staffRecordId: a.staffId, email: a.email, from: fmtTime(a.from), till: fmtTime(a.till), minutes: span(a), calendarType: a.cal, position: a.pos || '' });
   toast('Saving assignments to Airtable…');
   try {
     if (d.removed.length)
