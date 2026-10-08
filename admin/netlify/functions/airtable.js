@@ -198,14 +198,71 @@ async function updateAssignments(updates) {
   return { updated };
 }
 
+// Snapshot each assignment (incl. its Payroll link) BEFORE deleting, then send it to Zapier.
+// The browser never needs to know the Payroll ID — the server reads it from the record.
+const PAYROLL_FIELD = process.env.AIRTABLE_PAYROLL_FIELD || 'Payroll';
+const ZAPIER_HOOK_URL = process.env.ZAPIER_HOOK_URL || 'https://hooks.zapier.com/hooks/catch/11843729/4mjtdvj/';
+
+async function snapshotAssignments(ids) {
+  const out = [];
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50);
+    const formula = 'OR(' + chunk.map(id => `RECORD_ID()='${id}'`).join(',') + ')';
+    const [raw, str] = await Promise.all([
+      listAll(T_ASSIGN, 'pageSize=100&filterByFormula=' + encodeURIComponent(formula)),
+      listAll(T_ASSIGN, 'pageSize=100&cellFormat=string&timeZone=America%2FNew_York&userLocale=en-us&filterByFormula=' + encodeURIComponent(formula))
+    ]);
+    const names = new Map(str.map(r => [r.id, r.fields]));
+    raw.forEach(r => {
+      const f = r.fields, n = names.get(r.id) || {};
+      out.push({
+        assignmentId: r.id,
+        payrollId: (f[PAYROLL_FIELD] || [])[0] || '',
+        payrollIds: f[PAYROLL_FIELD] || [],
+        eventId: (f['Event'] || [])[0] || '',
+        eventName: n['Event'] || '',
+        staffId: (f['Staff Member'] || [])[0] || '',
+        staffName: n['Staff Member'] || '',
+        calendarType: n['Calendar Type'] || '',
+        from: flat(f['Start Time']),
+        till: flat(f['End Time']),
+        hours: f['Duration'] ?? null,
+        calendarEventId: flat(f['Calendar Event ID']) || ''
+      });
+    });
+  }
+  return out;
+}
+
+async function notifyZapier(records) {
+  if (!ZAPIER_HOOK_URL) return { sent: 0, skipped: 'ZAPIER_HOOK_URL not set' };
+  const deletedAt = new Date().toISOString();
+  let sent = 0; const errors = [];
+  // One webhook per assignment so each Zap run handles one Payroll record.
+  for (const rec of records) {
+    try {
+      const r = await fetch(ZAPIER_HOOK_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deleted', deletedAt, ...rec })
+      });
+      if (r.ok) sent++; else errors.push(rec.assignmentId + ': ' + r.status);
+    } catch (e) { errors.push(rec.assignmentId + ': ' + e.message); }
+  }
+  return { sent, errors };
+}
+
 async function deleteAssignments(ids) {
+  let snapshot = [];
+  try { snapshot = await snapshotAssignments(ids); } catch (e) { console.error('[snapshot]', e); }
   const deleted = [];
   for (let i = 0; i < ids.length; i += 10) {
     const qs = ids.slice(i, i + 10).map(id => 'records%5B%5D=' + encodeURIComponent(id)).join('&');
     const res = await at(api(T_ASSIGN, qs), { method: 'DELETE' });
     deleted.push(...res.records.map(r => r.id));
   }
-  return { deleted };
+  const zapier = await notifyZapier(snapshot.filter(r => deleted.includes(r.assignmentId)));
+  if (zapier.errors && zapier.errors.length) console.error('[zapier]', zapier.errors);
+  return { deleted, zapier };
 }
 
 async function createAssignments(payload) {
