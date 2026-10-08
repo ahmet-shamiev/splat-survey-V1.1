@@ -187,6 +187,8 @@ async function updateAssignments(updates) {
     if (u.position !== undefined) f['Position'] = u.position || null;
     if (u.from !== undefined) f['Start Time'] = u.from;
     if (u.till !== undefined) f['End Time'] = u.till;
+    if (u.date) f[OFFICE_DATE] = u.date;
+    if (u.description !== undefined) f[DESC_FIELD] = u.description;
     if (u.minutes != null) f['Duration'] = Math.round((u.minutes / 60) * 100) / 100;
     // Raised only when the hours actually change; an Airtable automation reacts and clears it.
     if (u.hoursChanged) f['Hours Changed'] = true;
@@ -230,7 +232,9 @@ async function snapshotAssignments(ids) {
         from: flat(f['Start Time']),
         till: flat(f['End Time']),
         hours: f['Duration'] ?? null,
-        calendarEventId: flat(f['Calendar Event ID']) || ''
+        calendarEventId: flat(f['Calendar Event ID']) || '',
+        assignmentType: (f['Event'] || []).length ? 'event' : 'office',
+        officeDate: String(flat(f[OFFICE_DATE]) || '').slice(0, 10)
       });
     });
   }
@@ -268,7 +272,57 @@ async function deleteAssignments(ids) {
   return { deleted, zapier };
 }
 
+// ---- Office work: OPS-only assignments with no Event, dated by OFFICE_DATE ----
+const OFFICE_DATE = process.env.AIRTABLE_OFFICE_DATE_FIELD || 'Office Date';
+const DESC_FIELD = process.env.AIRTABLE_ASSIGN_DESC_FIELD || 'Assignment Description';
+
+async function getOfficeAssignments() {
+  const formula = `AND({Event}='', {${OFFICE_DATE}}!='', IS_AFTER({${OFFICE_DATE}}, DATEADD(TODAY(), -2, 'days')))`;
+  const recs = await listAll(T_ASSIGN, 'pageSize=100&filterByFormula=' + encodeURIComponent(formula));
+  return recs.map(r => ({
+    id: r.id,
+    staffId: (r.fields['Staff Member'] || [])[0] || '',
+    date: String(flat(r.fields[OFFICE_DATE]) || '').slice(0, 10),
+    from: flat(r.fields['Start Time']),
+    till: flat(r.fields['End Time']),
+    calEventId: flat(r.fields['Calendar Event ID']) || '',
+    description: flat(r.fields[DESC_FIELD]) || ''
+  })).sort((a, b) => (a.date + parseClock(a.from)).localeCompare(b.date + parseClock(b.from)));
+}
+// '9:30am' → '0930' for sorting
+function parseClock(s) {
+  const m = String(s || '').match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+  if (!m) return '9999';
+  const h = (+m[1] % 12) + (m[3] && m[3].toLowerCase() === 'pm' ? 12 : 0);
+  return String(h).padStart(2, '0') + m[2];
+}
+
+async function createOfficeAssignments(payload) {
+  const { date, assignments } = payload;
+  if (!date) throw Object.assign(new Error('date is required'), { status: 400 });
+  if (!Array.isArray(assignments) || !assignments.length)
+    throw Object.assign(new Error('assignments array is empty'), { status: 400 });
+  const records = assignments.map(a => ({
+    fields: {
+      'Staff Member': [a.staffRecordId],
+      [OFFICE_DATE]: date,
+      ...(payload.description ? { [DESC_FIELD]: payload.description } : {}),
+      'Calendar Type': ['OPS Calendar'],
+      'Start Time': a.from,
+      'End Time': a.till,
+      'Duration': Math.round((a.minutes / 60) * 100) / 100
+    }
+  }));
+  const created = [];
+  for (let i = 0; i < records.length; i += 10) {
+    const res = await at(api(T_ASSIGN), { method: 'POST', body: JSON.stringify({ records: records.slice(i, i + 10), typecast: true }) });
+    created.push(...res.records.map(r => r.id));
+  }
+  return { created };
+}
+
 async function createAssignments(payload) {
+  if (payload.office) return createOfficeAssignments(payload);
   const { eventId, assignments } = payload;
   if (!eventId) throw Object.assign(new Error('eventId is required'), { status: 400 });
   if (!Array.isArray(assignments) || !assignments.length)
@@ -327,6 +381,8 @@ exports.handler = async (event) => {
     }
     if (event.httpMethod === 'PATCH' && resource === 'assignments')
       return { statusCode: 200, headers, body: JSON.stringify(await updateAssignments(JSON.parse(event.body || '{}').updates || [])) };
+    if (event.httpMethod === 'GET' && resource === 'office')
+      return { statusCode: 200, headers, body: JSON.stringify({ office: await getOfficeAssignments() }) };
     if (event.httpMethod === 'GET' && resource === 'staff')
       return { statusCode: 200, headers, body: JSON.stringify({ staff: await getStaff() }) };
     if (event.httpMethod === 'PATCH')
