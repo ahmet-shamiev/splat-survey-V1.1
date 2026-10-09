@@ -708,13 +708,13 @@ function renderOffice() {
         <div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">Till</div>${timeSel('till')}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">
-        <div class="lbl">Assignment description · sent in the invite</div>
-        <textarea data-desc rows="4" placeholder="What needs to be done in the office, e.g. inventory count, kit prep for Oct 20 pop-up…" style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:13px;line-height:1.6;font-family:inherit;border:1.5px solid #dde5e6;border-radius:10px;background:#fff;color:#1e2a2c;outline:none;resize:vertical"></textarea>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px">
         <div class="lbl">Staff member${o ? '' : 's'}</div>
         <div id="o-staff" style="display:flex;flex-direction:column;gap:8px"></div>
         ${o ? '' : '<button id="o-add" style="align-self:flex-start;margin-top:4px;cursor:pointer;border:1.5px solid #b7dde5;background:#fff;color:#0d7d94;font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;display:inline-flex;align-items:center;gap:8px"><span style="font-size:16px;line-height:1">+</span>Add another staff member</button>'}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="lbl">Assignment description · sent in the invite</div>
+        <textarea data-desc rows="4" placeholder="What needs to be done in the office, e.g. inventory count, kit prep for Oct 20 pop-up…" style="width:100%;box-sizing:border-box;padding:12px 14px;font-size:13px;line-height:1.6;font-family:inherit;border:1.5px solid #dde5e6;border-radius:10px;background:#fff;color:#1e2a2c;outline:none;resize:vertical"></textarea>
       </div>
       <div style="background:#f2fafb;border:1px solid #d9eef2;border-radius:10px;padding:12px 14px;font-size:13px;color:#2c5c66;line-height:1.6">${note}</div>
     </div>
