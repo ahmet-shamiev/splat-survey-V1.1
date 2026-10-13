@@ -92,7 +92,7 @@ async function getEvents() {
       subway: f(r, 'Nearest Subway (f)') || '',
       status: f(r, 'Status') || '',
       brief: f(r, 'Task Description Summary') || '',
-      guideUrl: (f(r, 'Project Guide URL') || '').trim(),
+      guideUrl: String(f(r, 'Glance') || '').trim(),
       type: '',
       slots: Number(f(r, 'Available Slots')) || 0,
       limit: Number(f(r, 'Event Users Limit')) || 0,
