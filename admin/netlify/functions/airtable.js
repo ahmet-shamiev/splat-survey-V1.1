@@ -74,6 +74,13 @@ function isoDate(rec) {
   return iso ? iso[0] : '';
 }
 
+const ALLOWED_CATEGORIES = ['event', 'residencies', 'one-day events (pop-ups)'];
+function categoryAllowed(r) {
+  const v = r.fields && r.fields['Category'];
+  const list = (Array.isArray(v) ? v : [v]).map(x => String((x && x.name) || x || '').trim().toLowerCase());
+  return list.some(c => ALLOWED_CATEGORIES.includes(c));
+}
+
 async function getEvents() {
   // Status = Active and date after yesterday. Date filtering happens below so the
   // formula stays valid whatever type the lookup field returns.
@@ -84,6 +91,7 @@ async function getEvents() {
   cutoff.setHours(0, 0, 0, 0);
 
   return recs
+    .filter(categoryAllowed)
     .map(r => ({
       id: r.id,
       title: f(r, 'Junction Record') || '—',
