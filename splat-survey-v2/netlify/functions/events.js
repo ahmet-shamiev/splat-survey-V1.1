@@ -36,6 +36,12 @@ exports.handler = async function(event, context) {
     recordId:    'Record ID',
   };
 
+  // Only these Category values are sent to the Survey App
+  const ALLOWED_CATEGORIES = ['task'];
+  const categoryAllowed = v => (Array.isArray(v) ? v : [v])
+    .map(x => String((x && x.name) || x || '').trim().toLowerCase())
+    .some(c => ALLOWED_CATEGORIES.includes(c));
+
   try {
     let allRecords = [];
     let offset     = null;
@@ -60,6 +66,7 @@ exports.handler = async function(event, context) {
         const f      = r.fields;
         const status = (f[FIELD_MAP.status] || '').toLowerCase();
         if(status !== 'active') return;
+        if(!categoryAllowed(f[FIELD_MAP.category])) return;
 
         const unwrap = v => Array.isArray(v) ? (v[0] || '') : (v || '');
 
