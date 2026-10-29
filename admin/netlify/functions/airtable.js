@@ -191,7 +191,8 @@ async function updateAssignments(updates) {
   const records = updates.map(u => {
     const f = {};
     if (u.staffRecordId) f['Staff Member'] = [u.staffRecordId];
-    if (u.calendarType) f['Calendar Type'] = [u.calendarType];
+    if (u.opsType) f['Calendar Type'] = [opsTypeOf(u.opsType)];
+    else if (u.calendarType) f['Calendar Type'] = [u.calendarType];
     if (u.position !== undefined) f['Position'] = u.position || null;
     if (u.from !== undefined) f['Start Time'] = u.from;
     if (u.till !== undefined) f['End Time'] = u.till;
@@ -283,10 +284,18 @@ async function deleteAssignments(ids) {
 // ---- Office work: OPS-only assignments with no Event, dated by OFFICE_DATE ----
 const OFFICE_DATE = process.env.AIRTABLE_OFFICE_DATE_FIELD || 'Office Date';
 const DESC_FIELD = process.env.AIRTABLE_ASSIGN_DESC_FIELD || 'Assignment Description';
+// Office work stores its OPS type in the Calendar Type link (invites still go to the OPS Google calendar).
+const OPS_TYPES = ['OPS General', 'OPS Training'];
+const opsTypeOf = v => OPS_TYPES.includes(v) ? v : 'OPS General';
 
 async function getOfficeAssignments() {
   const formula = `AND({Event}='', {${OFFICE_DATE}}!='', IS_AFTER({${OFFICE_DATE}}, DATEADD(TODAY(), -2, 'days')))`;
-  const recs = await listAll(T_ASSIGN, 'pageSize=100&filterByFormula=' + encodeURIComponent(formula));
+  const q = 'pageSize=100&filterByFormula=' + encodeURIComponent(formula);
+  const [recs, str] = await Promise.all([
+    listAll(T_ASSIGN, q),
+    listAll(T_ASSIGN, q + '&cellFormat=string&timeZone=America%2FNew_York&userLocale=en-us')
+  ]);
+  const calName = new Map(str.map(r => [r.id, String(r.fields['Calendar Type'] || '').split(',')[0].trim()]));
   return recs.map(r => ({
     id: r.id,
     staffId: (r.fields['Staff Member'] || [])[0] || '',
@@ -294,7 +303,8 @@ async function getOfficeAssignments() {
     from: flat(r.fields['Start Time']),
     till: flat(r.fields['End Time']),
     calEventId: flat(r.fields['Calendar Event ID']) || '',
-    description: flat(r.fields[DESC_FIELD]) || ''
+    description: flat(r.fields[DESC_FIELD]) || '',
+    opsType: opsTypeOf(calName.get(r.id))
   })).sort((a, b) => (a.date + parseClock(a.from)).localeCompare(b.date + parseClock(b.from)));
 }
 // '9:30am' → '0930' for sorting
@@ -315,7 +325,7 @@ async function createOfficeAssignments(payload) {
       'Staff Member': [a.staffRecordId],
       [OFFICE_DATE]: date,
       ...(payload.description ? { [DESC_FIELD]: payload.description } : {}),
-      'Calendar Type': ['OPS Calendar'],
+      'Calendar Type': [opsTypeOf(payload.opsType)],
       'Start Time': a.from,
       'End Time': a.till,
       'Duration': Math.round((a.minutes / 60) * 100) / 100
