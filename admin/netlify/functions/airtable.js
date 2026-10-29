@@ -126,11 +126,42 @@ async function getStaff() {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+// ---- New staff members ----
+const T_STAFF_MEMBERS = process.env.AIRTABLE_STAFF_MEMBERS_TABLE || 'tblI6wCqOI5iG9F0K';
+
+// Position choices read live from the field's schema (token needs schema.bases:read).
+// Falls back to the values already used on staff records.
+async function getStaffPositions() {
+  try {
+    const meta = await at('https://api.airtable.com/v0/meta/bases/' + BASE + '/tables');
+    const t = (meta.tables || []).find(x => x.id === T_STAFF_MEMBERS || x.name === T_STAFF_MEMBERS);
+    const fld = t && t.fields.find(x => x.name === 'Position');
+    const choices = fld && fld.options && fld.options.choices;
+    if (choices && choices.length) return { positions: choices.map(c => c.name), source: 'schema' };
+  } catch (e) { /* fall through */ }
+  const recs = await listAll(T_STAFF_MEMBERS, 'pageSize=100&fields%5B%5D=Position');
+  const set = new Set();
+  recs.forEach(r => [].concat(r.fields['Position'] || []).forEach(v => v && set.add(String(v.name || v))));
+  return { positions: [...set].sort(), source: 'records' };
+}
+
+async function createStaffMember(p) {
+  const first = String(p.firstName || '').trim(), last = String(p.lastName || '').trim();
+  const email = String(p.email || '').trim().toLowerCase();
+  if (!first || !last || !email) throw Object.assign(new Error('First name, last name and email are required'), { status: 400 });
+  if (await staffIdByEmail(email)) throw Object.assign(new Error('A staff member with this email already exists'), { status: 409 });
+  const fields = { 'First Name': first, 'Last Name': last, 'Email': email };
+  if (p.phone) fields['Phone'] = String(p.phone).trim();
+  if (p.position) fields['Position'] = p.position;
+  const res = await at(api(T_STAFF_MEMBERS), { method: 'POST', body: JSON.stringify({ fields }) });
+  return { id: res.id, name: first + ' ' + last, email, phone: fields['Phone'] || '', role: p.position || '' };
+}
+
 // Resolve a staff record id from an email address (spec: match staff by email).
 async function staffIdByEmail(email) {
   const safe = String(email).replace(/'/g, "\\'");
   const qs = 'filterByFormula=' + encodeURIComponent(`LOWER({Email})='${safe.toLowerCase()}'`) + '&maxRecords=1';
-  const page = await at(api(T_STAFF, qs));
+  const page = await at(api(T_STAFF_MEMBERS, qs));
   return page.records[0] ? page.records[0].id : null;
 }
 
@@ -403,6 +434,10 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers, body: JSON.stringify({ office: await getOfficeAssignments() }) };
     if (event.httpMethod === 'GET' && resource === 'staff')
       return { statusCode: 200, headers, body: JSON.stringify({ staff: await getStaff() }) };
+    if (event.httpMethod === 'GET' && resource === 'positions')
+      return { statusCode: 200, headers, body: JSON.stringify(await getStaffPositions()) };
+    if (event.httpMethod === 'POST' && resource === 'staff')
+      return { statusCode: 200, headers, body: JSON.stringify({ staff: await createStaffMember(JSON.parse(event.body || '{}')) }) };
     if (event.httpMethod === 'PATCH')
       return { statusCode: 200, headers, body: JSON.stringify(await updateEventBrief(JSON.parse(event.body || '{}'))) };
     if (event.httpMethod === 'POST')
