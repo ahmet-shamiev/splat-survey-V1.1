@@ -53,6 +53,7 @@
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <input id="search" class="inp" style="width:280px" placeholder="Search school, type, staff or date…">
       <button id="new-office" class="btn" style="padding:11px 16px"><span style="font-size:16px;line-height:1">+</span>Office work</button>
+      <button id="new-staff" class="btn" style="padding:11px 16px"><span style="font-size:16px;line-height:1">+</span>Staff member</button>
     </div>
   </div>
   <div id="list"></div>
@@ -848,6 +849,77 @@ async function removeOffice(o, btn) {
     toast(data.notFound.length ? o.name + ' removed. No calendar invite found to cancel.' : o.name + ' removed · invite cancelled');
   } catch (err) { toast('Removed in Airtable, but calendar update failed: ' + err.message); }
 }
+
+// ---------- New staff member ----------
+let POSITIONS_AT = null;
+async function openStaff() {
+  const m = state.staffModal = { firstName: '', lastName: '', email: '', phone: '', position: '', busy: false, err: '' };
+  renderStaff();
+  if (!POSITIONS_AT) {
+    try { POSITIONS_AT = (await getJSON(API + '?resource=positions')).positions || []; }
+    catch (err) { POSITIONS_AT = []; m.err = 'Could not load positions: ' + err.message; }
+    if (state.staffModal === m) renderStaff();
+  }
+}
+function closeStaff() { state.staffModal = null; document.getElementById('modal-mount').innerHTML = ''; }
+function renderStaff() {
+  const m = state.staffModal;
+  if (!m) return;
+  const field = (k, label, type, ph) => '<div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">' + label + '</div><input data-k="' + k + '" type="' + type + '" class="inp" placeholder="' + ph + '" value="' + esc(m[k]) + '"></div>';
+  const posOpts = POSITIONS_AT === null ? '<option value="">Loading…</option>'
+    : '<option value="">Select position…</option>' + POSITIONS_AT.map(p => '<option value="' + esc(p) + '"' + (m.position === p ? ' selected' : '') + '>' + esc(p) + '</option>').join('');
+  const mount = document.getElementById('modal-mount');
+  mount.innerHTML = `<div class="backdrop"><div class="modal" style="max-width:560px">
+    <div style="padding:22px 26px 16px;border-bottom:1px solid #eef3f3">
+      <div class="lbl" style="letter-spacing:0.1em;margin-bottom:6px">New staff member</div>
+      <div style="font-size:17px;font-weight:600;line-height:1.35">Add to Staff Members</div>
+    </div>
+    <div style="padding:20px 26px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
+        ${field('firstName', 'First name', 'text', 'Jane')}
+        ${field('lastName', 'Last name', 'text', 'Doe')}
+      </div>
+      ${field('email', 'Email', 'email', 'jane@example.com')}
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
+        ${field('phone', 'Phone', 'tel', '(555) 123-4567')}
+        <div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">Position</div><select data-k="position" class="inp"${POSITIONS_AT === null ? ' disabled' : ''}>${posOpts}</select></div>
+      </div>
+      <div id="s-err" style="font-size:13px;color:#a05252;line-height:1.5${m.err ? '' : ';display:none'}">${esc(m.err)}</div>
+    </div>
+    <div style="padding:16px 26px 22px;border-top:1px solid #eef3f3;display:flex;justify-content:flex-end;gap:10px">
+      <button id="s-cancel" class="btn-ghost">Cancel</button>
+      <button id="s-ok" class="btn" style="font-size:14px;padding:10px 20px">${m.busy ? 'Saving…' : 'Create staff member'}</button>
+    </div>
+  </div></div>`;
+  const ok = mount.querySelector('#s-ok');
+  const valid = () => m.firstName.trim() && m.lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m.email.trim());
+  const sync = () => { ok.style.opacity = valid() && !m.busy ? 1 : 0.4; };
+  mount.querySelectorAll('[data-k]').forEach(inp => {
+    inp[inp.tagName === 'SELECT' ? 'onchange' : 'oninput'] = e2 => { m[e2.target.dataset.k] = e2.target.value; sync(); };
+  });
+  sync();
+  mount.querySelector('#s-cancel').onclick = closeStaff;
+  mount.querySelector('.backdrop').onclick = e2 => { if (e2.target.classList.contains('backdrop')) closeStaff(); };
+  ok.onclick = () => { if (valid() && !m.busy) createStaff(); };
+}
+async function createStaff() {
+  const m = state.staffModal;
+  const email = m.email.trim().toLowerCase();
+  if (STAFF.some(x => x.email.toLowerCase() === email)) { m.err = 'A staff member with this email already exists.'; renderStaff(); return; }
+  m.busy = true; m.err = ''; renderStaff();
+  try {
+    const res = await getJSON(API + '?resource=staff', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName: m.firstName.trim(), lastName: m.lastName.trim(), email, phone: m.phone.trim(), position: m.position })
+    });
+    STAFF = [...STAFF, res.staff].sort((a, b) => a.name.localeCompare(b.name));
+    closeStaff();
+    toast(res.staff.name + ' added to Staff Members');
+  } catch (err) {
+    m.busy = false; m.err = 'Could not create: ' + err.message; renderStaff();
+  }
+}
+document.getElementById('new-staff').onclick = () => { if (!state.loading) openStaff(); };
 
 document.getElementById('new-office').onclick = () => { if (!state.loading) openOffice(null); };
 
