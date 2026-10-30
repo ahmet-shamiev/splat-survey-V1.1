@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SplatLab Admin — Staff Members</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f4f7f7; font-family: 'DM Sans', sans-serif; color: #1e2a2c; }
+  a { color: #0d7d94; } a:hover { color: #095a6c; }
+  input, select, button, textarea { font-family: 'DM Sans', sans-serif; }
+  :focus-visible { outline: 2px solid #22b8cf; outline-offset: 2px; }
+  .topbar { background:#0d7186; padding:14px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; position:sticky; top:0; z-index:40; }
+  .navlink { font-size:13px; font-weight:600; color:rgba(255,255,255,0.8); text-decoration:none; padding:7px 12px; border-radius:8px; }
+  .navlink:hover { color:#fff; background:rgba(255,255,255,0.12); }
+  .navlink.on { color:#fff; background:rgba(255,255,255,0.2); }
+  .wrap { max-width:1400px; margin:0 auto; padding:28px 24px 96px; }
+  .btn { white-space:nowrap; cursor:pointer; border:none; background:#0d7d94; color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:10px; display:inline-flex; align-items:center; gap:8px; }
+  .btn:hover { background:#0a6376; }
+  .btn-ghost { cursor:pointer; border:1.5px solid #dde5e6; background:#fff; color:#4d6265; font-size:14px; font-weight:600; padding:10px 18px; border-radius:10px; }
+  .inp { padding:10px 12px; font-size:14px; border:1.5px solid #dde5e6; border-radius:10px; background:#fff; color:#1e2a2c; outline:none; width:100%; }
+  .inp:focus { border-color:#22b8cf; }
+  .inp[readonly] { background:#f4f7f7; color:#6b7c7e; }
+  .lbl { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#93a3a5; }
+  .tablewrap { background:#fff; border:1px solid #e2eaea; border-radius:12px; overflow:auto; max-height:calc(100vh - 210px); }
+  table { border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-size:13px; }
+  th { position:sticky; top:0; z-index:2; background:#f8fbfb; text-align:left; font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#6b7c7e; padding:11px 14px; border-bottom:1px solid #e2eaea; white-space:nowrap; cursor:pointer; user-select:none; }
+  th:hover { color:#0d7186; }
+  td { padding:11px 14px; border-bottom:1px solid #eef3f3; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:top; }
+  tr.rec { cursor:pointer; }
+  tr.rec:hover td { background:#f3fafb; }
+  th:first-child, td:first-child { position:sticky; left:0; background:#fff; z-index:1; font-weight:600; border-right:1px solid #eef3f3; }
+  th:first-child { background:#f8fbfb; z-index:3; }
+  tr.rec:hover td:first-child { background:#f3fafb; }
+  .chip { display:inline-block; font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; background:#e3f4f7; color:#0d5f71; margin-right:4px; }
+  .backdrop { position:fixed; inset:0; background:rgba(16,38,42,0.45); display:flex; align-items:center; justify-content:center; padding:24px; z-index:60; }
+  .modal { background:#fff; border-radius:14px; width:100%; max-width:640px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 24px 60px rgba(9,40,46,0.28); }
+  .opt { display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:6px 10px; border:1.5px solid #dde5e6; border-radius:999px; cursor:pointer; }
+  .opt:has(input:checked) { border-color:#22b8cf; background:#e3f4f7; color:#0d5f71; font-weight:600; }
+  .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:80; background:#10343b; color:#fff; padding:14px 20px; border-radius:12px; font-size:14px; box-shadow:0 12px 30px rgba(9,40,46,0.3); max-width:90vw; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div style="font-size:17px;font-weight:700;color:#fff;letter-spacing:-0.01em">SplatLab · Event Survey</div>
+    <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.16);padding:3px 8px;border-radius:4px">Admin</div>
+    <nav style="display:flex;gap:4px;margin-left:12px">
+      <a class="navlink" href="index.html">Events &amp; staffing</a>
+      <a class="navlink on" href="staff.html">Staff Members</a>
+    </nav>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.14);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:500;color:#fff">
+    <span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span>Ahmet Shamiev
+  </div>
+</div>
+
+<div class="wrap">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:20px">
+    <div>
+      <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em">Staff Members</div>
+      <div id="summary" style="font-size:13px;color:#6b7c7e;margin-top:4px">Loading…</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input id="search" class="inp" style="width:280px" placeholder="Search name, email, position…">
+      <button id="refresh" class="btn-ghost" style="font-size:13px;padding:10px 14px">Refresh</button>
+      <button id="new-staff" class="btn" style="padding:11px 16px"><span style="font-size:16px;line-height:1">+</span>Staff member</button>
+    </div>
+  </div>
+  <div id="notice"></div>
+  <div id="table"></div>
+</div>
+
+<div id="modal-mount"></div>
+<div id="toast-mount"></div>
+
+<script>
+const API = '/.netlify/functions/airtable';
+const state = { fields: [], records: [], schema: true, query: '', sort: null, loading: true, error: null, preview: false, modal: null };
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function toast(msg) {
+  const m = document.getElementById('toast-mount');
+  m.innerHTML = '<div class="toast">' + esc(msg) + '</div>';
+  clearTimeout(toast.t); toast.t = setTimeout(() => { m.innerHTML = ''; }, 3200);
+}
+async function getJSON(url, init) {
+  const res = await fetch(url, init);
+  const raw = await res.text();
+  let data = {};
+  try { data = JSON.parse(raw); } catch (_) {}
+  if (res.status === 404) { const e = new Error('Airtable endpoint not found — this only runs on the deployed Netlify site.'); e.notDeployed = true; throw e; }
+  if (!res.ok) throw new Error(data.error || raw.slice(0, 180) || res.status + ' ' + res.statusText);
+  return data;
+}
+
+// Sample rows so the page can be previewed outside Netlify.
+function previewData() {
+  const fields = [
+    { name: 'Full Name', type: 'formula', editable: false },
+    { name: 'First Name', type: 'singleLineText', editable: true },
+    { name: 'Last Name', type: 'singleLineText', editable: true },
+    { name: 'Email', type: 'email', editable: true },
+    { name: 'Phone', type: 'phoneNumber', editable: true },
+    { name: 'Position', type: 'singleSelect', editable: true, options: ['Lead', 'MTA', 'TA', 'Explorer'] },
+    { name: 'Start Date', type: 'date', editable: true }
+  ];
+  const rows = [['Marc', 'Alvarez', 'marc@example.com', '(212) 555-0141', 'Lead', '2023-02-06'],
+    ['Taisha', 'Brooks', 'taisha@example.com', '(212) 555-0198', 'TA', '2024-09-03'],
+    ['Zoe', 'Chen', 'zoe@example.com', '(917) 555-0122', 'MTA', '2022-11-14']];
+  return { fields, schema: true, records: rows.map((r, i) => {
+    const raw = { 'Full Name': r[0] + ' ' + r[1], 'First Name': r[0], 'Last Name': r[1], Email: r[2], Phone: r[3], Position: r[4], 'Start Date': r[5] };
+    const display = { ...raw, 'Start Date': new Date(r[5] + 'T12:00').toLocaleDateString('en-US') };
+    return { id: 'recPreview' + i, raw, display };
+  }) };
+}
+
+async function load() {
+  state.loading = true; state.error = null; render();
+  try {
+    const d = await getJSON(API + '?resource=staff-table');
+    Object.assign(state, { fields: d.fields || [], records: d.records || [], schema: d.schema !== false, preview: false });
+  } catch (err) {
+    if (err.notDeployed) Object.assign(state, previewData(), { preview: true });
+    else state.error = err.message;
+  }
+  state.loading = false; render();
+}
+
+function cell(f, r) {
+  const raw = r.raw[f.name], disp = r.display[f.name];
+  if (f.type === 'checkbox') return raw ? '<span style="color:#0d7d94;font-weight:700">✓</span>' : '';
+  if (f.type === 'singleSelect' && raw) return '<span class="chip">' + esc(raw) + '</span>';
+  if (f.type === 'multipleSelects' && Array.isArray(raw)) return raw.map(v => '<span class="chip">' + esc(v) + '</span>').join('');
+  if (f.type === 'email' && raw) return '<a href="mailto:' + esc(raw) + '" onclick="event.stopPropagation()">' + esc(raw) + '</a>';
+  if (f.type === 'url' && raw) return '<a href="' + esc(raw) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + esc(raw) + '</a>';
+  if (f.type === 'multipleAttachments' && Array.isArray(raw)) return raw.length + ' file' + (raw.length === 1 ? '' : 's');
+  return esc(disp);
+}
+
+function visibleRecords() {
+  const q = state.query.trim().toLowerCase();
+  let list = state.records.filter(r => !q || state.fields.some(f => String(r.display[f.name] || '').toLowerCase().includes(q)));
+  if (state.sort) {
+    const { name, dir } = state.sort;
+    const val = r => { const v = r.raw[name]; return typeof v === 'number' ? v : String(r.display[name] || '').toLowerCase(); };
+    list = [...list].sort((a, b) => { const x = val(a), y = val(b); if (x === y) return 0; if (x === '') return 1; if (y === '') return -1; return (x < y ? -1 : 1) * dir; });
+  }
+  return list;
+}
+
+function render() {
+  const sum = document.getElementById('summary'), tbl = document.getElementById('table'), note = document.getElementById('notice');
+  note.innerHTML = '';
+  if (state.loading) { sum.textContent = 'Loading…'; tbl.innerHTML = '<div style="padding:48px;text-align:center;color:#93a3a5;font-size:14px">Loading staff from Airtable…</div>'; return; }
+  if (state.error) { sum.textContent = 'Could not load'; tbl.innerHTML = '<div style="background:#fff;border:1px solid #f0d6d6;border-radius:12px;padding:18px 20px;color:#a05252;font-size:14px">' + esc(state.error) + '</div>'; return; }
+  const notes = [];
+  if (state.preview) notes.push('Preview data — the live table loads on the deployed Netlify site.');
+  if (!state.schema) notes.push('Column types could not be read (Airtable token is missing the schema.bases:read scope), so only plain text fields are editable and empty columns are hidden.');
+  note.innerHTML = notes.map(n => '<div style="background:#fff8e6;border:1px solid #f3e2b3;color:#7a5b12;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:12px">' + esc(n) + '</div>').join('');
+  const list = visibleRecords();
+  sum.textContent = list.length === state.records.length ? state.records.length + ' staff members' : list.length + ' of ' + state.records.length + ' staff members';
+  if (!list.length) { tbl.innerHTML = '<div style="padding:48px;text-align:center;color:#93a3a5;font-size:14px;background:#fff;border:1px solid #e2eaea;border-radius:12px">No staff members match “' + esc(state.query) + '”.</div>'; return; }
+  const arrow = n => state.sort && state.sort.name === n ? (state.sort.dir > 0 ? ' ↑' : ' ↓') : '';
+  tbl.innerHTML = '<div class="tablewrap"><table><thead><tr>' +
+    state.fields.map(f => '<th data-sort="' + esc(f.name) + '">' + esc(f.name) + arrow(f.name) + '</th>').join('') +
+    '</tr></thead><tbody>' +
+    list.map(r => '<tr class="rec" data-id="' + r.id + '">' + state.fields.map(f => '<td title="' + esc(r.display[f.name]) + '">' + cell(f, r) + '</td>').join('') + '</tr>').join('') +
+    '</tbody></table></div>';
+  tbl.querySelectorAll('th[data-sort]').forEach(th => th.onclick = () => {
+    const n = th.dataset.sort;
+    state.sort = state.sort && state.sort.name === n ? (state.sort.dir > 0 ? { name: n, dir: -1 } : null) : { name: n, dir: 1 };
+    render();
+  });
+  tbl.querySelectorAll('tr.rec').forEach(tr => tr.onclick = () => openModal(state.records.find(r => r.id === tr.dataset.id)));
+}
+
+// ---------- Edit / create modal ----------
+function openModal(rec) {
+  const vals = {};
+  state.fields.forEach(f => { vals[f.name] = rec ? rec.raw[f.name] : (f.type === 'multipleSelects' ? [] : f.type === 'checkbox' ? false : null); });
+  state.modal = { rec, vals, orig: JSON.stringify(vals), busy: false, err: '' };
+  renderModal();
+}
+function closeModal() { state.modal = null; document.getElementById('modal-mount').innerHTML = ''; }
+
+function inputFor(f, v, i) {
+  const k = ' data-i="' + i + '"';
+  if (!f.editable) {
+    const rec = state.modal.rec;
+    return '<input class="inp" readonly value="' + esc(rec ? rec.display[f.name] : '') + '" placeholder="Calculated in Airtable">';
+  }
+  switch (f.type) {
+    case 'multilineText': case 'richText':
+      return '<textarea class="inp"' + k + ' rows="3" style="resize:vertical">' + esc(v) + '</textarea>';
+    case 'singleSelect':
+      return '<select class="inp"' + k + '><option value="">—</option>' + (f.options || []).map(o => '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>';
+    case 'multipleSelects':
+      return '<div style="display:flex;flex-wrap:wrap;gap:6px">' + (f.options || []).map(o => '<label class="opt"><input type="checkbox"' + k + ' value="' + esc(o) + '"' + ((v || []).includes(o) ? ' checked' : '') + '>' + esc(o) + '</label>').join('') + '</div>';
+    case 'checkbox':
+      return '<label class="opt" style="align-self:flex-start"><input type="checkbox"' + k + (v ? ' checked' : '') + '>Yes</label>';
+    case 'date':
+      return '<input class="inp" type="date"' + k + ' value="' + esc(v ? String(v).slice(0, 10) : '') + '">';
+    case 'number': case 'currency': case 'percent': case 'rating':
+      return '<input class="inp" type="number" step="any"' + k + ' value="' + esc(v ?? '') + '">';
+    case 'email': return '<input class="inp" type="email"' + k + ' value="' + esc(v) + '">';
+    case 'phoneNumber': return '<input class="inp" type="tel"' + k + ' value="' + esc(v) + '">';
+    case 'url': return '<input class="inp" type="url"' + k + ' value="' + esc(v) + '">';
+    default: return '<input class="inp" type="text"' + k + ' value="' + esc(typeof v === 'string' ? v : '') + '">';
+  }
+}
+
+function renderModal() {
+  const m = state.modal;
+  if (!m) return;
+  const title = m.rec ? (m.rec.display[state.fields[0].name] || [m.vals['First Name'], m.vals['Last Name']].filter(Boolean).join(' ') || 'Staff member') : 'New staff member';
+  const editable = state.fields.filter(f => f.editable), computed = state.fields.filter(f => !f.editable);
+  const block = f => '<div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">' + esc(f.name) + (f.editable ? '' : ' <span style="text-transform:none;letter-spacing:0;font-weight:500">· read-only</span>') + '</div>' + inputFor(f, m.vals[f.name], state.fields.indexOf(f)) + '</div>';
+  const mount = document.getElementById('modal-mount');
+  mount.innerHTML = '<div class="backdrop"><div class="modal">' +
+    '<div style="padding:22px 26px 16px;border-bottom:1px solid #eef3f3">' +
+      '<div class="lbl" style="letter-spacing:0.1em;margin-bottom:6px">' + (m.rec ? 'Edit staff member' : 'Staff Members') + '</div>' +
+      '<div style="font-size:17px;font-weight:600;line-height:1.35">' + esc(title) + '</div></div>' +
+    '<div style="padding:20px 26px;display:flex;flex-direction:column;gap:16px;overflow:auto">' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">' + editable.map(block).join('') + '</div>' +
+      (m.rec && computed.length ? '<div style="border-top:1px solid #eef3f3;padding-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">' + computed.map(block).join('') + '</div>' : '') +
+      '<div style="font-size:13px;color:#a05252;line-height:1.5' + (m.err ? '' : ';display:none') + '">' + esc(m.err) + '</div>' +
+    '</div>' +
+    '<div style="padding:16px 26px 22px;border-top:1px solid #eef3f3;display:flex;justify-content:flex-end;gap:10px">' +
+      '<button id="m-cancel" class="btn-ghost">Cancel</button>' +
+      '<button id="m-ok" class="btn" style="font-size:14px;padding:10px 20px">' + (m.busy ? 'Saving…' : m.rec ? 'Save changes' : 'Create staff member') + '</button>' +
+    '</div></div></div>';
+
+  const ok = mount.querySelector('#m-ok');
+  const dirty = () => JSON.stringify(m.vals) !== m.orig;
+  const valid = () => m.rec || (String(m.vals['First Name'] || '').trim() && String(m.vals['Last Name'] || '').trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(m.vals['Email'] || '').trim()));
+  const sync = () => { ok.style.opacity = dirty() && valid() && !m.busy ? 1 : 0.4; };
+  mount.querySelectorAll('[data-i]').forEach(el => {
+    const f = state.fields[+el.dataset.i];
+    const read = () => {
+      if (f.type === 'multipleSelects') m.vals[f.name] = [...mount.querySelectorAll('[data-i="' + el.dataset.i + '"]:checked')].map(x => x.value);
+      else if (f.type === 'checkbox') m.vals[f.name] = el.checked;
+      else if (['number', 'currency', 'percent', 'rating'].includes(f.type)) m.vals[f.name] = el.value === '' ? null : +el.value;
+      else m.vals[f.name] = el.value === '' ? null : el.value;
+      sync();
+    };
+    el.oninput = read; el.onchange = read;
+  });
+  sync();
+  mount.querySelector('#m-cancel').onclick = closeModal;
+  mount.querySelector('.backdrop').onclick = e => { if (e.target.classList.contains('backdrop')) closeModal(); };
+  ok.onclick = () => { if (dirty() && valid() && !m.busy) save(); };
+}
+
+async function save() {
+  const m = state.modal;
+  const orig = JSON.parse(m.orig), changed = {};
+  state.fields.forEach(f => { if (f.editable && JSON.stringify(m.vals[f.name]) !== JSON.stringify(orig[f.name])) changed[f.name] = m.vals[f.name]; });
+  if (changed['Email']) {
+    const email = String(changed['Email']).trim().toLowerCase();
+    if (state.records.some(r => r.id !== (m.rec && m.rec.id) && String(r.raw['Email'] || '').toLowerCase() === email)) { m.err = 'Another staff member already uses this email.'; renderModal(); return; }
+  }
+  if (state.preview) { m.err = 'Saving is disabled in preview mode.'; renderModal(); return; }
+  m.busy = true; m.err = ''; renderModal();
+  try {
+    await getJSON(API + '?resource=staff-record', {
+      method: m.rec ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: m.rec ? m.rec.id : undefined, fields: changed })
+    });
+    const name = [m.vals['First Name'], m.vals['Last Name']].filter(Boolean).join(' ') || 'Staff member';
+    closeModal();
+    toast(m.rec ? name + ' updated' : name + ' added to Staff Members');
+    load();
+  } catch (err) {
+    m.busy = false; m.err = 'Could not save: ' + err.message; renderModal();
+  }
+}
+
+document.getElementById('search').oninput = e => { state.query = e.target.value; render(); };
+document.getElementById('refresh').onclick = () => { if (!state.loading) load(); };
+document.getElementById('new-staff').onclick = () => { if (!state.loading && !state.error) openModal(null); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.modal) closeModal(); });
+load();
+</script>
+</body>
+</html>

@@ -30,6 +30,9 @@
   .backdrop { position:fixed; inset:0; background:rgba(16,38,42,0.45); display:flex; align-items:center; justify-content:center; padding:24px; z-index:60; }
   .modal { background:#fff; border-radius:14px; width:100%; max-width:900px; max-height:88vh; overflow:auto; box-shadow:0 24px 60px rgba(9,40,46,0.28); }
   .lbl { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#93a3a5; }
+  .navlink { font-size:13px; font-weight:600; color:rgba(255,255,255,0.8); text-decoration:none; padding:7px 12px; border-radius:8px; }
+  .navlink:hover { color:#fff; background:rgba(255,255,255,0.12); }
+  .navlink.on { color:#fff; background:rgba(255,255,255,0.2); }
   .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:80; background:#10343b; color:#fff; padding:14px 20px; border-radius:12px; font-size:14px; box-shadow:0 12px 30px rgba(9,40,46,0.3); max-width:90vw; }
 </style>
 </head>
@@ -38,6 +41,10 @@
   <div style="display:flex;align-items:center;gap:12px">
     <div style="font-size:17px;font-weight:700;color:#fff;letter-spacing:-0.01em">SplatLab · Event Survey</div>
     <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.16);padding:3px 8px;border-radius:4px">Admin</div>
+    <nav style="display:flex;gap:4px;margin-left:12px">
+      <a class="navlink on" href="index.html">Events &amp; staffing</a>
+      <a class="navlink" href="staff.html">Staff Members</a>
+    </nav>
   </div>
   <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.14);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:500;color:#fff">
     <span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span>Ahmet Shamiev
