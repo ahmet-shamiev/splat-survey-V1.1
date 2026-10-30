@@ -66,6 +66,13 @@
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <input id="search" class="inp" style="width:280px" placeholder="Search name, email, position…">
+      <select id="sortby" class="inp" style="width:auto">
+        <option value="">Airtable order</option>
+        <option value="First Name|1">First name A–Z</option>
+        <option value="First Name|-1">First name Z–A</option>
+        <option value="Last Name|1">Last name A–Z</option>
+        <option value="Last Name|-1">Last name Z–A</option>
+      </select>
       <button id="refresh" class="btn-ghost" style="font-size:13px;padding:10px 14px">Refresh</button>
       <button id="new-staff" class="btn" style="padding:11px 16px"><span style="font-size:16px;line-height:1">+</span>Staff member</button>
     </div>
@@ -173,6 +180,7 @@ function render() {
   tbl.querySelectorAll('th[data-sort]').forEach(th => th.onclick = () => {
     const n = th.dataset.sort;
     state.sort = state.sort && state.sort.name === n ? (state.sort.dir > 0 ? { name: n, dir: -1 } : null) : { name: n, dir: 1 };
+    syncSortSelect();
     render();
   });
   tbl.querySelectorAll('tr.rec').forEach(tr => tr.onclick = () => openModal(state.records.find(r => r.id === tr.dataset.id)));
@@ -279,6 +287,17 @@ async function save() {
   }
 }
 
+function syncSortSelect() {
+  const sel = document.getElementById('sortby'), v = state.sort ? state.sort.name + '|' + state.sort.dir : '';
+  sel.value = [...sel.options].some(o => o.value === v) ? v : '';
+}
+document.getElementById('sortby').onchange = e => {
+  const [name, dir] = e.target.value.split('|');
+  state.sort = name ? { name, dir: +dir } : null;
+  try { localStorage.setItem('staffSort', e.target.value); } catch (_) {}
+  render();
+};
+try { const saved = localStorage.getItem('staffSort'); if (saved) { const [name, dir] = saved.split('|'); state.sort = { name, dir: +dir }; syncSortSelect(); } } catch (_) {}
 document.getElementById('search').oninput = e => { state.query = e.target.value; render(); };
 document.getElementById('refresh').onclick = () => { if (!state.loading) load(); };
 document.getElementById('new-staff').onclick = () => { if (!state.loading && !state.error) openModal(null); };
