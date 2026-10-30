@@ -157,6 +157,82 @@ async function createStaffMember(p) {
   return { id: res.id, name: first + ' ' + last, email, phone: fields['Phone'] || '', role: p.position || '' };
 }
 
+// ---- Staff Members page (mirror of the Airtable table) ----
+const STAFF_HIDDEN = new Set(['Hourly Rate', 'Assignments', 'Payroll', 'Status']);
+const EDITABLE_TYPES = new Set(['singleLineText', 'email', 'phoneNumber', 'url', 'multilineText', 'richText',
+  'number', 'currency', 'percent', 'singleSelect', 'multipleSelects', 'checkbox', 'date', 'rating']);
+
+async function staffSchema() {
+  try {
+    const meta = await at('https://api.airtable.com/v0/meta/bases/' + BASE + '/tables');
+    const t = (meta.tables || []).find(x => x.id === T_STAFF_MEMBERS || x.name === T_STAFF_MEMBERS);
+    if (t) return t.fields.filter(x => !STAFF_HIDDEN.has(x.name)).map(x => ({
+      name: x.name, type: x.type, editable: EDITABLE_TYPES.has(x.type),
+      options: (x.options && x.options.choices) ? x.options.choices.map(c => c.name) : undefined
+    }));
+  } catch (e) { /* no schema scope */ }
+  return null;
+}
+
+async function getStaffTable() {
+  const qs = 'pageSize=100';
+  const [schema, raw, str] = await Promise.all([
+    staffSchema(),
+    listAll(T_STAFF_MEMBERS, qs),
+    listAll(T_STAFF_MEMBERS, qs + '&cellFormat=string&timeZone=America%2FNew_York&userLocale=en-us')
+  ]);
+  let fields = schema;
+  if (!fields) {
+    // Fallback: infer columns from the data; only plain text values are editable.
+    const seen = new Map();
+    raw.forEach(r => Object.entries(r.fields).forEach(([k, v]) => {
+      if (STAFF_HIDDEN.has(k) || seen.has(k)) return;
+      seen.set(k, { name: k, type: typeof v === 'string' ? 'singleLineText' : 'unknown', editable: typeof v === 'string' });
+    }));
+    fields = [...seen.values()];
+  }
+  const disp = new Map(str.map(r => [r.id, r.fields]));
+  const records = raw.map(r => {
+    const out = { id: r.id, raw: {}, display: {} };
+    fields.forEach(fl => {
+      out.raw[fl.name] = r.fields[fl.name] === undefined ? null : r.fields[fl.name];
+      out.display[fl.name] = String((disp.get(r.id) || {})[fl.name] ?? '');
+    });
+    return out;
+  });
+  return { fields, records, schema: !!schema };
+}
+
+async function cleanStaffFields(input) {
+  const schema = await staffSchema();
+  const allowed = schema ? new Map(schema.filter(x => x.editable).map(x => [x.name, x])) : null;
+  const out = {};
+  Object.entries(input || {}).forEach(([k, v]) => {
+    if (STAFF_HIDDEN.has(k)) return;
+    if (allowed && !allowed.has(k)) return;
+    out[k] = v === '' ? null : v;
+  });
+  return out;
+}
+
+async function saveStaffRecord(p) {
+  const fields = await cleanStaffFields(p.fields);
+  const email = fields['Email'] ? String(fields['Email']).trim().toLowerCase() : '';
+  if (email) {
+    fields['Email'] = email;
+    const dupe = await staffIdByEmail(email);
+    if (dupe && dupe !== p.id) throw Object.assign(new Error('Another staff member already uses this email'), { status: 409 });
+  }
+  if (p.id) {
+    const res = await at(api(T_STAFF_MEMBERS) + '/' + p.id, { method: 'PATCH', body: JSON.stringify({ fields, typecast: true }) });
+    return { id: res.id };
+  }
+  if (!fields['First Name'] || !fields['Last Name'] || !email)
+    throw Object.assign(new Error('First Name, Last Name and Email are required'), { status: 400 });
+  const res = await at(api(T_STAFF_MEMBERS), { method: 'POST', body: JSON.stringify({ fields, typecast: true }) });
+  return { id: res.id };
+}
+
 // Resolve a staff record id from an email address (spec: match staff by email).
 async function staffIdByEmail(email) {
   const safe = String(email).replace(/'/g, "\\'");
@@ -434,6 +510,10 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers, body: JSON.stringify({ office: await getOfficeAssignments() }) };
     if (event.httpMethod === 'GET' && resource === 'staff')
       return { statusCode: 200, headers, body: JSON.stringify({ staff: await getStaff() }) };
+    if (event.httpMethod === 'GET' && resource === 'staff-table')
+      return { statusCode: 200, headers, body: JSON.stringify(await getStaffTable()) };
+    if ((event.httpMethod === 'POST' || event.httpMethod === 'PATCH') && resource === 'staff-record')
+      return { statusCode: 200, headers, body: JSON.stringify(await saveStaffRecord(JSON.parse(event.body || '{}'))) };
     if (event.httpMethod === 'GET' && resource === 'positions')
       return { statusCode: 200, headers, body: JSON.stringify(await getStaffPositions()) };
     if (event.httpMethod === 'POST' && resource === 'staff')
