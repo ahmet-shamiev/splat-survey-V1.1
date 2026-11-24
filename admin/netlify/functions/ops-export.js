@@ -80,7 +80,27 @@ async function staffByEmail() {
   return map;
 }
 
-const { requireSession } = require('../lib/session');
+// ---- Sign-in check: answers 401 unless the request has a valid session cookie (set by auth.js) ----
+const requireSession = (() => {
+  const crypto = require('crypto');
+  const DEFAULT_ALLOWED = ['operations@splatlab.com', 'taylor@splatlab.com', 'ahmet@splatlab.com'];
+  const allowed = e => (process.env.ALLOWED_EMAILS ? process.env.ALLOWED_EMAILS.split(',') : DEFAULT_ALLOWED).map(x => x.trim().toLowerCase()).includes(String(e || '').toLowerCase());
+  const unb64u = s => Buffer.from(String(s).replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+  const valid = event => {
+    const secret = process.env.AUTH_SECRET || '';
+    if (secret.length < 32) return false;
+    const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+    const hit = raw.split(';').map(s => s.trim()).find(s => s.startsWith('sl_session='));
+    const token = hit ? decodeURIComponent(hit.slice(11)) : '';
+    if (token.indexOf('.') < 0) return false;
+    const [body, mac] = token.split('.');
+    const want = crypto.createHmac('sha256', secret).update(body).digest(), got = unb64u(mac);
+    if (got.length !== want.length || !crypto.timingSafeEqual(got, want)) return false;
+    try { const p = JSON.parse(unb64u(body).toString('utf8')); return p.p === 'session' && p.exp > Date.now() / 1000 && allowed(p.e); }
+    catch (_) { return false; }
+  };
+  return event => valid(event) ? null : { statusCode: 401, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify({ error: 'Not signed in', signIn: '/login.html' }) };
+})();
 
 exports.handler = async (event) => {
   const denied = requireSession(event);

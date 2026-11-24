@@ -11,7 +11,7 @@
 //   GET                                              -> { email } of the signed-in user, or 401
 //
 // Env vars (Netlify -> Site settings -> Environment variables):
-//   AUTH_SECRET            required, 32+ random characters (see lib/session.js)
+//   AUTH_SECRET            required, 32+ random characters
 //   ALLOWED_EMAILS         optional override of the 3 allowed emails, comma separated
 //   AIRTABLE_TOKEN         already set for airtable.js
 //   AIRTABLE_BASE_ID       already set / defaults to appJQfkR5k7lLG0hY
@@ -27,7 +27,37 @@
 //                          instead of using Gmail.
 
 const crypto = require('crypto');
-const S = require('../lib/session');
+// ---- Session helpers (same block in airtable.js, send-invite.js, ops-export.js) ----
+const S = (() => {
+  const crypto = require('crypto');
+  const DEFAULT_ALLOWED = ['operations@splatlab.com', 'taylor@splatlab.com', 'ahmet@splatlab.com'];
+  const COOKIE = 'sl_session', HOURS = 12;
+  const allowedEmails = () => (process.env.ALLOWED_EMAILS ? process.env.ALLOWED_EMAILS.split(',') : DEFAULT_ALLOWED).map(e => e.trim().toLowerCase()).filter(Boolean);
+  const isAllowed = e => allowedEmails().includes(String(e || '').trim().toLowerCase());
+  const secret = () => { const s = process.env.AUTH_SECRET || ''; if (s.length < 32) throw new Error('AUTH_SECRET is missing or shorter than 32 characters'); return s; };
+  const b64u = buf => Buffer.from(buf).toString('base64').replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const unb64u = s => Buffer.from(String(s).replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+  const sign = payload => { const body = b64u(JSON.stringify(payload)); return body + '.' + b64u(crypto.createHmac('sha256', secret()).update(body).digest()); };
+  const verify = (token, purpose) => {
+    if (!token || typeof token !== 'string' || token.indexOf('.') < 0) return null;
+    const [body, mac] = token.split('.');
+    const want = crypto.createHmac('sha256', secret()).update(body).digest(), got = unb64u(mac);
+    if (got.length !== want.length || !crypto.timingSafeEqual(got, want)) return null;
+    let p; try { p = JSON.parse(unb64u(body).toString('utf8')); } catch (_) { return null; }
+    if (!p || p.p !== purpose || !p.exp || Date.now() / 1000 > p.exp || !isAllowed(p.e)) return null;
+    return p;
+  };
+  const readCookie = (event, name) => {
+    const raw = (event.headers && (event.headers.cookie || event.headers.Cookie)) || '';
+    const hit = raw.split(';').map(s => s.trim()).find(s => s.startsWith(name + '='));
+    return hit ? decodeURIComponent(hit.slice(name.length + 1)) : '';
+  };
+  const sessionCookie = email => `${COOKIE}=${encodeURIComponent(sign({ p: 'session', e: email.toLowerCase(), exp: Math.floor(Date.now() / 1000) + HOURS * 3600 }))}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${HOURS * 3600}`;
+  const clearCookie = () => `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+  const getSession = event => { try { const p = verify(readCookie(event, COOKIE), 'session'); return p ? { email: p.e } : null; } catch (_) { return null; } };
+  const requireSession = event => getSession(event) ? null : { statusCode: 401, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }, body: JSON.stringify({ error: 'Not signed in', signIn: '/login.html' }) };
+  return { allowedEmails, isAllowed, sign, verify, getSession, requireSession, sessionCookie, clearCookie, b64u };
+})();
 
 const BASE = process.env.AIRTABLE_BASE_ID || 'appJQfkR5k7lLG0hY';
 const T_USERS = process.env.AIRTABLE_USERS_TABLE || 'Portal Users';
