@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SplatLab Admin — Events &amp; staffing</title>
+<script src="auth-guard.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -46,8 +47,11 @@
       <a class="navlink" href="staff.html">Staff Members</a>
     </nav>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.14);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:500;color:#fff">
-    <span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span>Ahmet Shamiev
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.14);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:500;color:#fff">
+      <span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span><span data-user>Signed in</span>
+    </div>
+    <button type="button" data-signout hidden style="cursor:pointer;border:1.5px solid rgba(255,255,255,0.35);background:transparent;color:#fff;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px">Sign out</button>
   </div>
 </div>
 
@@ -59,6 +63,7 @@
     </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <input id="search" class="inp" style="width:280px" placeholder="Search school, type, staff or date…">
+      <button id="ops-export" class="btn-ghost" style="font-size:13px;padding:10px 14px">Export OPS hours</button>
       <button id="new-office" class="btn" style="padding:11px 16px"><span style="font-size:16px;line-height:1">+</span>Office work</button>
       <button id="new-staff" class="btn" style="padding:11px 16px"><span style="font-size:16px;line-height:1">+</span>Staff member</button>
     </div>
@@ -926,6 +931,60 @@ async function createStaff() {
     m.busy = false; m.err = 'Could not create: ' + err.message; renderStaff();
   }
 }
+// ---------- OPS calendar → CSV ----------
+function openOpsExport() {
+  const t = new Date(), pad = n => String(n).padStart(2, '0');
+  const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const m = { from: iso(new Date(t.getFullYear(), t.getMonth(), 1)), to: '2027-01-31', busy: false, msg: '', err: false };
+  const mount = document.getElementById('modal-mount');
+  const draw = () => {
+    mount.innerHTML = `<div class="backdrop"><div class="modal" style="max-width:480px">
+      <div style="padding:22px 26px 16px;border-bottom:1px solid #eef3f3">
+        <div class="lbl" style="letter-spacing:0.1em;margin-bottom:6px">OPS calendar</div>
+        <div style="font-size:17px;font-weight:600;line-height:1.35">Export hours to CSV</div>
+      </div>
+      <div style="padding:20px 26px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
+          <div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">From</div><input id="ox-from" type="date" class="inp" value="${m.from}"></div>
+          <div style="display:flex;flex-direction:column;gap:6px"><div class="lbl">To</div><input id="ox-to" type="date" class="inp" value="${m.to}"></div>
+        </div>
+        <div style="font-size:13px;color:#6b7c7e;line-height:1.5">One row per guest who accepted. Paid hours subtract the lunch minutes written in the notes (e.g. "includes 45 min lunch").</div>
+        <div style="font-size:13px;line-height:1.5;color:${m.err ? '#a05252' : '#0d5f71'}${m.msg ? '' : ';display:none'}">${esc(m.msg)}</div>
+      </div>
+      <div style="padding:16px 26px 22px;border-top:1px solid #eef3f3;display:flex;justify-content:flex-end;gap:10px">
+        <button id="ox-cancel" class="btn-ghost">Close</button>
+        <button id="ox-go" class="btn" style="font-size:14px;padding:10px 20px">${m.busy ? 'Reading calendar…' : 'Download CSV'}</button>
+      </div>
+    </div></div>`;
+    mount.querySelector('#ox-from').onchange = e => { m.from = e.target.value; };
+    mount.querySelector('#ox-to').onchange = e => { m.to = e.target.value; };
+    mount.querySelector('#ox-cancel').onclick = () => { mount.innerHTML = ''; };
+    mount.querySelector('.backdrop').onclick = e => { if (e.target.classList.contains('backdrop')) mount.innerHTML = ''; };
+    mount.querySelector('#ox-go').onclick = run;
+  };
+  const run = async () => {
+    if (m.busy) return;
+    if (!m.from || !m.to || m.from > m.to) { m.msg = 'Pick a valid date range.'; m.err = true; draw(); return; }
+    m.busy = true; m.msg = ''; draw();
+    try {
+      const d = await getJSON('/.netlify/functions/ops-export?from=' + m.from + '&to=' + m.to);
+      const cols = [['Event name', 'event'], ['Date', 'date'], ['Attendee', 'attendee'], ['Email', 'email'], ['Start', 'start'], ['End', 'end'],
+        ['Period', 'period'], ['Total hours', 'totalHours'], ['Unpaid lunch (min)', 'unpaidLunchMin'], ['Paid hours', 'paidHours'], ['Notes', 'notes']];
+      const q = v => { const s = String(v ?? ''); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+      const csv = '\ufeff' + [cols.map(c => c[0]).join(','), ...d.rows.map(r => cols.map(c => q(r[c[1]])).join(','))].join('\r\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      a.download = 'ops-hours_' + m.from + '_to_' + m.to + '.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      m.msg = d.rows.length + ' rows from ' + d.events + ' events.' + (d.noConfirmed ? ' ' + d.noConfirmed + ' events had no accepted guests.' : '') + (d.skippedAllDay ? ' ' + d.skippedAllDay + ' all-day events skipped.' : '');
+      m.err = false;
+    } catch (err) { m.msg = 'Could not export: ' + err.message; m.err = true; }
+    m.busy = false; draw();
+  };
+  draw();
+}
+document.getElementById('ops-export').onclick = openOpsExport;
+
 document.getElementById('new-staff').onclick = () => { if (!state.loading) openStaff(); };
 
 document.getElementById('new-office').onclick = () => { if (!state.loading) openOffice(null); };

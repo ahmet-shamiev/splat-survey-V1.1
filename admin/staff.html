@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SplatLab Admin — Staff Members</title>
+<script src="auth-guard.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -53,8 +54,11 @@
       <a class="navlink on" href="staff.html">Staff Members</a>
     </nav>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.14);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:500;color:#fff">
-    <span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span>Ahmet Shamiev
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.14);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:500;color:#fff">
+      <span style="width:7px;height:7px;border-radius:50%;background:#4ade80"></span><span data-user>Signed in</span>
+    </div>
+    <button type="button" data-signout hidden style="cursor:pointer;border:1.5px solid rgba(255,255,255,0.35);background:transparent;color:#fff;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px">Sign out</button>
   </div>
 </div>
 
