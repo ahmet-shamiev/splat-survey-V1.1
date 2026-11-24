@@ -278,6 +278,6 @@ exports.handler = async (event) => {
     return json(400, { error: 'Unknown action' });
   } catch (e) {
     console.error('auth error:', e.message);
-    return json(500, { error: 'Something went wrong on our side. Please try again in a minute.' });
+    return json(500, { error: 'Something went wrong on our side. Please try again in a minute.', detail: e.message });
   }
 };
