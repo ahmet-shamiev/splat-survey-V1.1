@@ -486,7 +486,11 @@ async function createAssignments(payload) {
   return { created, unmatched };
 }
 
+const { requireSession } = require('../lib/session');
+
 exports.handler = async (event) => {
+  const denied = requireSession(event);
+  if (denied) return denied;
   const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
   if (!TOKEN)
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'AIRTABLE_TOKEN is not set on this site' }) };

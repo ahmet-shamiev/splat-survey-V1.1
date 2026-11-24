@@ -50,7 +50,11 @@ async function getAccessToken() {
   return data.access_token;
 }
 
+const { requireSession } = require('../lib/session');
+
 exports.handler = async (event) => {
+  const denied = requireSession(event);
+  if (denied) return denied;
   // Diagnostic: GET ?debug=1 reports what the function actually received.
   // Values are described, never printed in full — no secret leaves the box.
   if (event.httpMethod === 'GET' && event.queryStringParameters && event.queryStringParameters.debug) {
