@@ -205,7 +205,7 @@
     if (PREVIEW) return previewCall(body);
     const res = await fetch(API, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) { const e = new Error(data.error || 'Something went wrong. Please try again.'); e.data = data; throw e; }
+    if (!res.ok) { const e = new Error((data.error || 'Something went wrong. Please try again.') + (data.detail ? ' Details: ' + data.detail : '')); e.data = data; throw e; }
     return data;
   }
   async function busy(form, fn) {
