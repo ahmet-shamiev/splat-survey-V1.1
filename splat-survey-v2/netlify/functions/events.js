@@ -36,11 +36,10 @@ exports.handler = async function(event, context) {
     recordId:    'Record ID',
   };
 
-  // Only these Category values are sent to the Survey App
-  const ALLOWED_CATEGORIES = ['task'];
+  // Any non-empty Category value is sent to the Survey App
   const categoryAllowed = v => (Array.isArray(v) ? v : [v])
-    .map(x => String((x && x.name) || x || '').trim().toLowerCase())
-    .some(c => ALLOWED_CATEGORIES.includes(c));
+    .map(x => String((x && x.name) || x || '').trim())
+    .some(c => c !== '');
 
   try {
     let allRecords = [];
