@@ -69,15 +69,31 @@ exports.handler = async function(event, context) {
 
         const unwrap = v => Array.isArray(v) ? (v[0] || '') : (v || '');
 
+        // Airtable rich text arrives as Markdown; convert to clean plain text
+        const cleanText = s => String(s || '')
+          .replace(/\r\n?/g, '\n')
+          .replace(/\[([^\]]*)\]\((?:mailto:|tel:)?[^)]*\)/g, '$1')
+          .replace(/(\*\*|__)(.*?)\1/g, '$2')
+          .replace(/(^|[^*\w])[*_]([^*_\n]+)[*_](?=[^*\w]|$)/g, '$1$2')
+          .replace(/~~(.*?)~~/g, '$1')
+          .replace(/`([^`]*)`/g, '$1')
+          .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+          .replace(/^\s{0,3}>\s?/gm, '')
+          .replace(/^\s*[-*+]\s+(?=\S)/gm, '• ')
+          .replace(/\\([\\`*_{}\[\]()#+\-.!])/g, '$1')
+          .replace(/[ \t]+$/gm, '')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+
         allRecords.push({
           id:      r.id,
           name:    unwrap(f[FIELD_MAP.name]),
           date:    unwrap(f[FIELD_MAP.date]) || 'TBD',
           section: unwrap(f[FIELD_MAP.category]),
-          desc:    unwrap(f[FIELD_MAP.description]),
-          notes:   unwrap(f[FIELD_MAP.notes]),
+          desc:    cleanText(unwrap(f[FIELD_MAP.description])),
+          notes:   cleanText(unwrap(f[FIELD_MAP.notes])),
           time:    unwrap(f[FIELD_MAP.time]),
-          adminNotes: unwrap(f[FIELD_MAP.adminNotes]),
+          adminNotes: cleanText(unwrap(f[FIELD_MAP.adminNotes])),
           slots:      unwrap(f[FIELD_MAP.slots]),
           recordId:   unwrap(f[FIELD_MAP.recordId]),
         });
